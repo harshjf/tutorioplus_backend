@@ -10,7 +10,6 @@ class ServiceController{
       };
     
       public addService: RequestHandler = async (req: Request, res: Response) => {
-        //console.log("Request",req);
         const serviceResponse = await serviceService.addService(req);
         return handleServiceResponse(serviceResponse, res);
       };

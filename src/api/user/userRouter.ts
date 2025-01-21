@@ -2,9 +2,10 @@ import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
 import express, { type Router } from "express";
 import { z } from "zod";
 import { createApiBody, createApiResponse } from "@/api-docs/openAPIResponseBuilders";
-import { GetCitySchema, GetStateSchema, GetUserSchema, UserSchema, UserSignInSchema,UserSignUpSchema } from "@/api/user/userModel";
+import { GetCitySchema, GetStateSchema, GetUserSchema, UserConfirmResetPasswordSchema, UserResetPasswordSchema, UserSchema, UserSignInSchema,UserSignUpSchema } from "@/api/user/userModel";
 import { validateRequest } from "@/common/utils/httpHandlers";
 import { userController } from "./userController";
+import { verifyToken } from "@/common/middleware/jwtVerification";
 
 export const userRegistry = new OpenAPIRegistry();
 export const userRouter: Router = express.Router();
@@ -50,6 +51,32 @@ userRegistry.registerPath({
 userRouter.post("/signup", userController.signUp);
 
 userRegistry.registerPath({
+  method: "post",
+  path: "/users/resetpassword",
+  tags: ["User"],
+  requestBody: createApiBody(UserResetPasswordSchema),
+  responses: createApiResponse(z.object({ token: z.string() }), "Success"),
+});
+userRouter.post("/resetpassword",userController.resetPassword);
+
+userRegistry.registerPath({
+  method: "post",
+  path: "/users/confirmresetpassword",
+  tags: ["User"],
+  requestBody: createApiBody(UserConfirmResetPasswordSchema),
+  responses: createApiResponse(z.object({ token: z.string() }), "Success"),
+});
+userRouter.post("/confirmresetpassword",userController.confirmResetPassword);
+
+userRegistry.registerPath({
+  method: "get",
+  path: "/users/getsubjects",
+  tags: ["User"],
+  responses: createApiResponse(z.object({ token: z.string() }), "Success"),
+});
+userRouter.get("/getsubjects",  verifyToken,userController.getSubjects);
+
+/* userRegistry.registerPath({
   method: "get",
   path: "/users/getcountries",
   tags: ["User"],
@@ -78,3 +105,4 @@ userRegistry.registerPath({
  userRouter.get("/getcities/:id", validateRequest(GetCitySchema), userController.getCities);
  
  
+ */

@@ -5,7 +5,9 @@ import { UserRepository } from "@/api/user/userRepository";
 import { ServiceResponse } from "@/common/models/serviceResponse";
 import { logger } from "@/server";
 import jwt from "jsonwebtoken";
+import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcrypt';
+import sendResetPasswordEmail from "@/common/utils/emailService";
 
 
 export class UserService {
@@ -56,16 +58,83 @@ export class UserService {
     }
   }
 
-  async signUp(name:string,email:string,password:string,countryId:number,stateId:number,cityId:number,pinCode:string,purposeOfSignIn:string,firstPaymentDate:Date): Promise<ServiceResponse<User | null>>{
+  async signUp(name:string,email:string,password:string,countryId:number,stateId:number,cityId:number,pinCode:string,purposeOfSignIn:string,firstPaymentDate:Date,address:string,phone:string): Promise<ServiceResponse<User | null>>{
     try{
       const hashedPassword = await bcrypt.hash(password, 10);
       const user=await this.userRepository.signUp(name,email,hashedPassword);
-      const result=await this.userRepository.insertMetaData(user?.id || 0,countryId,stateId,cityId,pinCode,purposeOfSignIn,firstPaymentDate);
+      const result=await this.userRepository.insertMetaData(user?.id || 0,countryId,stateId,cityId,pinCode,purposeOfSignIn,firstPaymentDate,address,phone);
       return ServiceResponse.success("User added successfully!", user);
     }catch(e){
       const errorMessage = `Error during sign-up: ${e}`;
       logger.error(errorMessage);
       return ServiceResponse.failure("An error occurred during sign-up", null, StatusCodes.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async resetPassword(email:string){
+    try{
+      const user = await this.userRepository.findByEmailAsync(email);
+      if(!user){
+        return ServiceResponse.failure("This email address is not registered. Please check the email and try again.", null, StatusCodes.UNAUTHORIZED);
+      }else{        
+        const token=uuidv4();
+
+        const expiryDate = new Date();
+        expiryDate.setHours(expiryDate.getHours() + 1);
+
+        await this.userRepository.saveResetToken(user.id, token, expiryDate);
+
+        const resetLink = `http://localhost:3000/forgot-password?token=${token}`;
+        await sendResetPasswordEmail(user.email,resetLink);
+        return ServiceResponse.success("User found successfully!", user);
+      }
+      
+    }catch(e){
+      const errorMessage = `Error during reset-password: ${e}`;
+      logger.error(errorMessage);
+      return ServiceResponse.failure("An error occurred while resetting the password", null, StatusCodes.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async confirmResetPassword(token:string,password:string){
+    try{
+      const isTokenValid= await this.userRepository.isTokenValid(token);
+      console.log("Is token valid",isTokenValid);
+      if(!isTokenValid){
+        return ServiceResponse.failure("Link is not valid, please try again!", null, StatusCodes.UNAUTHORIZED);
+      }else{       
+        const currentTime= new Date();
+        if(currentTime>isTokenValid.expires_at){
+          return ServiceResponse.failure("Link has been expired!", null, StatusCodes.UNAUTHORIZED);
+        }else{
+          if(isTokenValid.is_used){
+            return ServiceResponse.failure("Token has already been used!", null, StatusCodes.UNAUTHORIZED);
+          }else{
+            console.log("Password",password);
+            const hashedPassword = await bcrypt.hash(password, 10);
+            console.log("hashed password",hashedPassword);
+            const resetPassword=await this.userRepository.resetPassword(isTokenValid.student_id,hashedPassword);
+            const markTokenUsed=await this.userRepository.tokenUsed(isTokenValid.id);
+            return ServiceResponse.success("Your password has been reset successfully. You can now log in with your new password.",resetPassword);
+          }
+        } 
+            
+      }
+    }catch(e){
+      const errorMessage = `Error during reset-password: ${e}`;
+      logger.error(errorMessage);
+      return ServiceResponse.failure("An error occurred while resetting the password", null, StatusCodes.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async getSubjects(): Promise<ServiceResponse<Country[] | null>> {
+    try {
+     const subjects=await this.userRepository.getSubjects();
+     return ServiceResponse.success<Country[]>("Subjects!", subjects);
+    } catch (e) {
+      const errorMessage = `Error during fetching subjects: ${e}`;
+      logger.error(errorMessage);
+      return ServiceResponse.failure("An error occurred during fetching subjects", null, StatusCodes.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -101,6 +170,8 @@ export class UserService {
       return ServiceResponse.failure("An error occurred during fetching cities", null, StatusCodes.INTERNAL_SERVER_ERROR);
     }
   }
+
+  
 }
 
 export const userService = new UserService();

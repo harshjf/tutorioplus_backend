@@ -37,6 +37,15 @@ export const UserSignUpSchema = z.object({
   firstPaymentDate:z.date()
 });
 
+export const UserResetPasswordSchema = z.object({
+  email:z.string().email()
+});
+
+export const UserConfirmResetPasswordSchema = z.object({
+  email:z.string().email(),
+  password: z.string().min(8)
+});
+
 export type Country = z.infer<typeof CountrySchema>;
 export const CountrySchema=z.object({
   id: z.number(),

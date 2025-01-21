@@ -3,9 +3,9 @@ import express, { type Router } from "express";
 import { z } from "zod";
 import { createApiBody, createApiResponse } from "@/api-docs/openAPIResponseBuilders";
 import {  AddServiceRequestSchema, ServiceSchema } from "@/api/service/serviceModel";
-import { validateRequest } from "@/common/utils/httpHandlers";
 import { serviceController } from "./serviceController";
 import { optionalFileUpload } from "@/common/middleware/uploadMiddleware";
+import { verifyToken } from "@/common/middleware/jwtVerification";
 
 export const serviceRegistry = new OpenAPIRegistry();
 export const serviceRouter: Router = express.Router();
@@ -19,7 +19,7 @@ serviceRegistry.registerPath({
   responses: createApiResponse(z.array(ServiceSchema), "Success"),
 });
 
-serviceRouter.get("/", serviceController.getServices);
+serviceRouter.get("/",serviceController.getServices);
 
 
 serviceRegistry.registerPath({
@@ -31,6 +31,7 @@ serviceRegistry.registerPath({
   });
   serviceRouter.post(
     "/addService",
+    verifyToken,
     optionalFileUpload,
     serviceController.addService
   );

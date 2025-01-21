@@ -21,7 +21,13 @@ const app: Express = express();
 dotenv.config();
 
 const secretKey = crypto.randomBytes(32).toString("hex");
-//console.log("Secret key",secretKey);
+
+const corsOptions = {
+    origin: "http://localhost:3000" /* env.CORS_ORIGIN */, 
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], 
+    allowedHeaders: ['Content-Type', 'Authorization'], 
+    credentials: true,
+};
 
 // Set the application to trust the reverse proxy
 app.set("trust proxy", true);
@@ -29,7 +35,7 @@ app.set("trust proxy", true);
 // Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
+app.use(cors(corsOptions));
 app.use(helmet());
 //app.use(rateLimiter);
 

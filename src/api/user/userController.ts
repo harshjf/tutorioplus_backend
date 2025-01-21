@@ -16,11 +16,27 @@ class UserController {
   };
 
   public signUp: RequestHandler = async(req: Request, res: Response) =>{
-    const {name,email,password,countryId,stateId,cityId,pinCode,purposeOfSignIn,first_payment_date} = req.body;
-    const serviceResponse = await userService.signUp(name,email,password,countryId,stateId,cityId,pinCode,purposeOfSignIn,first_payment_date);
+    const {name,email,password,countryId,stateId,cityId,pinCode,purposeOfSignIn,first_payment_date,address,phone} = req.body;
+    const serviceResponse = await userService.signUp(name,email,password,countryId,stateId,cityId,pinCode,purposeOfSignIn,first_payment_date,address,phone);
     return handleServiceResponse(serviceResponse,res);
   };
 
+  public resetPassword:RequestHandler=async(req:Request, res:Response) =>{
+    const {email}=req.body;
+    const serviceResponse= await userService.resetPassword(email);
+    return handleServiceResponse(serviceResponse,res);
+  }
+
+  public confirmResetPassword:RequestHandler=async(req:Request, res:Response) =>{
+    const {token, password}=req.body;
+    const serviceResponse=await userService.confirmResetPassword(token,password);
+    return handleServiceResponse(serviceResponse,res);
+  }
+  
+  public getSubjects:RequestHandler=async(req:Request, res:Response) =>{
+    const serviceResponse=await userService.getSubjects();
+    return handleServiceResponse(serviceResponse,res);
+  }
   public getCountries: RequestHandler = async (req: Request, res: Response) => {
     const serviceResponse = await userService.getAllCountries();
     return handleServiceResponse(serviceResponse, res);
@@ -35,6 +51,7 @@ class UserController {
     const serviceResponse = await userService.getCities(id);
     return handleServiceResponse(serviceResponse, res);
   };
+  
 }
 
 export const userController = new UserController();

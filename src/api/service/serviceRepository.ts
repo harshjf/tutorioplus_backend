@@ -10,7 +10,6 @@ export class ServiceRepository {
     async getServiceById(serviceId: number): Promise<Service>{
         const sql="SELECT * FROM services where id=$1";
         const result=await query(sql,[serviceId]);
-        console.log("Result",result);
         return result[0];
     }
     async addDocumentBasedService(studentId:number,subjectId:number,serviceId:number,docPath:string,description:string,dueDate:Date): Promise<DocumentBasedService>{
