@@ -21,6 +21,11 @@ class UserController {
     return handleServiceResponse(serviceResponse,res);
   };
 
+  public addMentor: RequestHandler = async(req: Request, res: Response) =>{
+    const serviceResponse = await userService.addMentor(req);
+    return handleServiceResponse(serviceResponse,res);
+  };
+
   public resetPassword:RequestHandler=async(req:Request, res:Response) =>{
     const {email}=req.body;
     const serviceResponse= await userService.resetPassword(email);
@@ -35,6 +40,11 @@ class UserController {
   
   public getSubjects:RequestHandler=async(req:Request, res:Response) =>{
     const serviceResponse=await userService.getSubjects();
+    return handleServiceResponse(serviceResponse,res);
+  }
+  public getStudents:RequestHandler=async(req:Request, res:Response) =>{
+    const {filter} = req.body;
+    const serviceResponse=await userService.getStudents(filter);
     return handleServiceResponse(serviceResponse,res);
   }
   public getCountries: RequestHandler = async (req: Request, res: Response) => {

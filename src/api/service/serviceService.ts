@@ -1,6 +1,6 @@
 import { StatusCodes } from "http-status-codes";
 
-import type { Service } from "@/api/service/serviceModel";
+import type { DocumentBasedService, GetAssignmentListFilter, Service } from "@/api/service/serviceModel";
 import { ServiceRepository } from "@/api/service/serviceRepository";
 import { ServiceResponse } from "@/common/models/serviceResponse";
 import { logger } from "@/server";
@@ -44,8 +44,34 @@ export class ServiceService {
           logger.error(`Error adding service: ${e}`);
           return ServiceResponse.failure("Failed to add service", null, StatusCodes.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    async getAssignmentList(filter:GetAssignmentListFilter, student_id:string) {
+      try {
+        const assignments = await this.serviceRepository.getAssignmentList(filter,student_id);
+        if(assignments.length>0){
+          return ServiceResponse.success<DocumentBasedService[]>("Assignments retrieved successfully.", assignments);
+        }else{
+          return ServiceResponse.success<DocumentBasedService[]>("No assignments available for the given criteria.", assignments);
+        }        
+      } catch (e) {
+          const errorMessage = `Error occured during fetching assignments: ${e}`;
+          logger.error(errorMessage);
+          return ServiceResponse.failure("An error occurred during fetching assignments", null, StatusCodes.INTERNAL_SERVER_ERROR);
       }
     }
+
+    async assignMentor(doc_based_service_id:number, mentor_id:number){
+      try {
+        const services = await this.serviceRepository.assignMentor(doc_based_service_id,mentor_id);
+        return ServiceResponse.success<Service[]>("Services found", services);
+      } catch (e) {
+          const errorMessage = `Error occured during fetching services: ${e}`;
+          logger.error(errorMessage);
+          return ServiceResponse.failure("An error occurred during fetching services", null, StatusCodes.INTERNAL_SERVER_ERROR);
+      }
+    }
+}
 
     export const serviceService = new ServiceService();
   

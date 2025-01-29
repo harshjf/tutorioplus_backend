@@ -15,7 +15,6 @@ export const UserSchema = z.object({
   updatedAt: z.date(),
 });
 
-// Input Validation for 'GET users/:id' endpoint
 export const GetUserSchema = z.object({
   params: z.object({ id: commonValidations.id }),
 });
@@ -45,6 +44,35 @@ export const UserConfirmResetPasswordSchema = z.object({
   email:z.string().email(),
   password: z.string().min(8)
 });
+
+export const SubjectSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+});
+export type subject = z.infer<typeof SubjectSchema>;
+
+export const StudentSchema = z.object({
+  user_id: z.number(),
+  user_name: z.string(),
+  user_email: z.string().email(),
+  user_role_id: z.number(),
+  metadata_id: z.number(),
+  pincode: z.string().optional(),
+  address: z.string().optional(),
+  phone_number: z.string().optional(),
+  purpose_of_sign_in: z.string().optional(),
+  first_payment_date: z.string().optional(),  
+  metadata_created_at: z.string(),  
+  metadata_updated_at: z.string(),  
+});
+export const getStudentFilter=z.object({
+  email:z.string(),
+  name:z.string(),
+  phone_number:z.string()
+})
+export type getStudentFilter = z.infer<typeof getStudentFilter>;
+// Type inference
+export type Student = z.infer<typeof StudentSchema>;
 
 export type Country = z.infer<typeof CountrySchema>;
 export const CountrySchema=z.object({
@@ -78,3 +106,19 @@ export const CitySchema=z.object({
 export const GetCitySchema = z.object({
   params: z.object({ id: commonValidations.id }),  
 });
+
+
+export const MentorSignUpSchema = z.object({
+  name: z.string(),
+  email: z.string().email(),
+  password: z.string(),
+  phone_number: z.string().max(15),
+  address: z.string(),
+  qualification: z.string(),
+  teaching_experience: z.number(),
+  job_type: z.enum(["part-time", "full-time"]),
+  country: z.string(),
+  state: z.string(),
+  city: z.string(),
+});
+export type MentorSignUpSchema = z.infer<typeof MentorSignUpSchema>;

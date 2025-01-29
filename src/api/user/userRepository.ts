@@ -1,4 +1,4 @@
-import type { City, Country, State, User } from "@/api/user/userModel";
+import type { City, Country, getStudentFilter, State, User } from "@/api/user/userModel";
 import {query} from "@/common/models/database"
 
 export class UserRepository {
@@ -18,14 +18,58 @@ export class UserRepository {
     const result=await query(sql,[email]);
     return result[0];
   }
-  async signUp(name:string,email:string,password:string){
-    const sql="INSERT INTO users (role_id, name, email, password) VALUES (2, $1, $2, $3) RETURNING *;"
-    const result=await query(sql,[name,email,password]);
+  async signUp(name:string,email:string,password:string,role_id:number){
+    const sql="INSERT INTO users (role_id, name, email, password) VALUES ($1, $2, $3, $4) RETURNING *;"
+    const result=await query(sql,[role_id,name,email,password]);
     return result[0];
   }
   async getSubjects(){
     const sql="SELECT * FROM subjects ";
     const result=await query(sql);
+    return result;
+  }
+  async getStudents(filter:getStudentFilter){
+    let sql=`  SELECT 
+        u.id AS user_id,
+        u.name AS user_name,
+        u.email AS user_email,
+        u.role_id AS user_role_id,
+        sm.id AS metadata_id,
+        sm.pincode,
+        sm.address,
+        sm.phone_number,
+        sm.purpose_of_sign_in,
+        sm.first_payment_date,
+        sm.created_at AS metadata_created_at,
+        sm.updated_at AS metadata_updated_at
+      FROM 
+        users u
+      JOIN 
+        student_metadata sm ON u.id = sm.user_id`;
+    const conditions: string[] = [];
+    const values: any[] = [];
+      
+        
+    if (filter.email) {
+      conditions.push(`u.email = $${values.length + 1}`);
+      values.push(`${filter.email}`);
+    }
+    if (filter.name) {
+      conditions.push(`u.name = $${values.length + 1}`);
+      values.push(`${filter.name}`);
+    }
+    if (filter.phone_number) {
+      conditions.push(`sm.phone_number = $${values.length + 1}`);
+      values.push(`${filter.phone_number}`);
+    }
+      
+    if (conditions.length > 0) {
+      sql += ` WHERE ` + conditions.join(' AND ');
+    }
+    console.log("Values",values);
+    const result=await query(sql,values);
+    console.log("Query",sql);
+    console.log("result",result);
     return result;
   }
   async getAllCountries(){
@@ -47,6 +91,11 @@ export class UserRepository {
     const sql="INSERT INTO student_metadata(user_id,country_id,state_id,city_id,pincode,purpose_of_sign_in,first_payment_date,address,phone_number) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)";
     const result=await query(sql,[id,countryId,stateId,cityId,pinCode,purposeOfSignIn,firstPaymentDate,address,phone]);
     return result;
+  }
+  async insertMentorMetaData(id:number,phoneNumber:string,address:string,qualification:string,teachingExperience:number,jobType:string,country:string,state:string,city:string,photoPath:string,cvPath:string){
+    const sql="INSERT INTO mentor_metadata(user_id,phone_number,address,qualification,teaching_experience,job_type,cv,photo,country,state,city) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)";
+    const result=await query(sql,[id,phoneNumber,address,qualification,teachingExperience,jobType,cvPath,photoPath,country,state,city]);
+    return result[0];
   }
   async saveResetToken(id:number, token:string, expiryDate:Date){
     const sql="INSERT INTO reset_password(student_id,token,expires_at) VALUES($1,$2,$3)";

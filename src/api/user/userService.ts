@@ -1,6 +1,6 @@
 import { StatusCodes } from "http-status-codes";
 
-import type { City, Country, State, User } from "@/api/user/userModel";
+import type { City, Country, State, Student, User, getStudentFilter, subject } from "@/api/user/userModel";
 import { UserRepository } from "@/api/user/userRepository";
 import { ServiceResponse } from "@/common/models/serviceResponse";
 import { logger } from "@/server";
@@ -59,9 +59,10 @@ export class UserService {
   }
 
   async signUp(name:string,email:string,password:string,countryId:number,stateId:number,cityId:number,pinCode:string,purposeOfSignIn:string,firstPaymentDate:Date,address:string,phone:string): Promise<ServiceResponse<User | null>>{
+    const role_id=2;
     try{
       const hashedPassword = await bcrypt.hash(password, 10);
-      const user=await this.userRepository.signUp(name,email,hashedPassword);
+      const user=await this.userRepository.signUp(name,email,hashedPassword,role_id);
       const result=await this.userRepository.insertMetaData(user?.id || 0,countryId,stateId,cityId,pinCode,purposeOfSignIn,firstPaymentDate,address,phone);
       return ServiceResponse.success("User added successfully!", user);
     }catch(e){
@@ -71,6 +72,26 @@ export class UserService {
     }
   }
 
+  async addMentor(req:any): Promise<ServiceResponse<User | null>>{
+    const{name,email,password}=req.body;
+    const role_id=3;
+    try{
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const user=await this.userRepository.signUp(name,email,hashedPassword,role_id);
+
+      // adding data to mentor_metadata
+      const cvPath = req.files && req.files.cv ? req.files.cv[0].path : null;
+      const photoPath = req.files && req.files.photo ? req.files.photo[0].path : null;
+      const{phoneNumber,address,qualification,teachingExperience,jobType,country,state,city}=req.body;  
+      const result=await this.userRepository.insertMentorMetaData(user?.id || 0,phoneNumber,address,qualification,teachingExperience,jobType,country,state,city,photoPath,cvPath);
+      return ServiceResponse.success("Mentor added successfully!", result);
+
+    }catch(e){
+      const errorMessage = `Error during sign-up: ${e}`;
+      logger.error(errorMessage);
+      return ServiceResponse.failure("An error occurred during sign-up", null, StatusCodes.INTERNAL_SERVER_ERROR);
+    }
+  }
   async resetPassword(email:string){
     try{
       const user = await this.userRepository.findByEmailAsync(email);
@@ -127,12 +148,23 @@ export class UserService {
     }
   }
 
-  async getSubjects(): Promise<ServiceResponse<Country[] | null>> {
+  async getSubjects(): Promise<ServiceResponse<subject[] | null>> {
     try {
      const subjects=await this.userRepository.getSubjects();
      return ServiceResponse.success<Country[]>("Subjects!", subjects);
     } catch (e) {
       const errorMessage = `Error during fetching subjects: ${e}`;
+      logger.error(errorMessage);
+      return ServiceResponse.failure("An error occurred during fetching subjects", null, StatusCodes.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async getStudents(filter:getStudentFilter): Promise<ServiceResponse<Student[] | null>>{
+    try{
+      const students = await this.userRepository.getStudents(filter);
+      return ServiceResponse.success<Student[]>("Students!",students);
+    }catch(e){
+      const errorMessage = `Error during fetching students: ${e}`;
       logger.error(errorMessage);
       return ServiceResponse.failure("An error occurred during fetching subjects", null, StatusCodes.INTERNAL_SERVER_ERROR);
     }
@@ -171,7 +203,6 @@ export class UserService {
     }
   }
 
-  
 }
 
 export const userService = new UserService();

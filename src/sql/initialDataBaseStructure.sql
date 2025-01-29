@@ -16,7 +16,7 @@ CREATE TABLE users (
 	id SERIAL PRIMARY KEY,
 	role_id INT REFERENCES roles(id),
 	name TEXT,
-	email VARCHAR(50) NOT NULL,
+	email VARCHAR(50) NOT NULL UNIQUE,
 	password TEXT NOT NULL,
 	created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
@@ -76,19 +76,25 @@ CREATE TABLE student_metadata (
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    --FOREIGN KEY (country_id) REFERENCES countries(id) ON DELETE SET NULL,
-    --FOREIGN KEY (state_id) REFERENCES states(id) ON DELETE SET NULL,
-    --FOREIGN KEY (city_id) REFERENCES cities(id) ON DELETE SET NULL
 );
 
 CREATE TABLE mentor_metadata (
     id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL, 
-    subject_id INT NOT NULL, 
+    user_id INT NOT NULL,  
+    phone_number VARCHAR(15),
+    address TEXT,
+    qualification TEXT,
+    teaching_experience INT,
+    job_type VARCHAR(20), 
+    cv BYTEA,
+    country TEXT,
+    state TEXT, 
+    city TEXT,  
+    active BOOLEAN DEFAULT TRUE,
+    approve BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE, 
-    FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE 
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE news_announcements (
@@ -120,7 +126,7 @@ CREATE TABLE services (
 CREATE TABLE document_based_services (
     id SERIAL PRIMARY KEY,
     student_id INT NOT NULL,          
-	subject_id INT NOT NULL,
+	subject_id INT,
     mentor_id INT,           
     service_id INT NOT NULL,           
     doc_path TEXT NOT NULL,            
@@ -174,3 +180,20 @@ CREATE TABLE  reset_password(
 	created_at TIMESTAMP NOT NULL,
 	is_used Boolean DEFAULT FALSE
 );
+
+INSERT INTO roles (role) VALUES ('Mentor');
+
+ALTER TABLE document_based_services
+ADD CONSTRAINT fk_document_based_services_mentor
+FOREIGN KEY (mentor_id) REFERENCES users(id)
+ON DELETE SET NULL;
+
+ALTER TABLE document_based_services
+ADD COLUMN updated_at TIMESTAMP DEFAULT NOW();
+
+/* for vivek */
+ALTER TABLE document_based_services
+ALTER COLUMN subject_id DROP NOT NULL;
+
+ALTER TABLE users ADD CONSTRAINT unique_email UNIQUE (email);
+

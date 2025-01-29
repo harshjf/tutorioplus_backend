@@ -4,6 +4,7 @@ import { z } from "zod";
 import { createApiBody, createApiResponse } from "@/api-docs/openAPIResponseBuilders";
 import { GrievanceCreateSchema, GrievanceSchema } from "@/api/grievance/grievanceModel";
 import { grievanceController } from "./grievanceController";
+import { verifyToken } from "@/common/middleware/jwtVerification";
 
 export const grievanceRegistry = new OpenAPIRegistry();
 export const grievanceRouter: Router = express.Router();
@@ -16,8 +17,7 @@ grievanceRegistry.registerPath({
   tags: ["Grievance"],
   responses: createApiResponse(z.array(GrievanceSchema), "Success"),
 });
-
-grievanceRouter.get("/", grievanceController.getGrievances);
+grievanceRouter.get("/", verifyToken, grievanceController.getGrievances);
 
 grievanceRegistry.registerPath({
     method: "post",
@@ -27,4 +27,4 @@ grievanceRegistry.registerPath({
     responses: createApiResponse(GrievanceSchema, "Success"),
   });
   
-  grievanceRouter.post("/addGrievance", grievanceController.createGrievance);
+  grievanceRouter.post("/addGrievance",verifyToken, grievanceController.createGrievance);

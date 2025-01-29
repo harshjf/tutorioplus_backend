@@ -28,11 +28,55 @@ serviceRegistry.registerPath({
     tags: ["Services"],
     requestBody: createApiBody(AddServiceRequestSchema),
     responses: createApiResponse(z.string(), "Success"),
-  });
-  serviceRouter.post(
-    "/addService",
-    verifyToken,
-    optionalFileUpload,
-    serviceController.addService
-  );
+});
+
+serviceRouter.post(
+  "/addService",
+  verifyToken,
+  optionalFileUpload,
+  serviceController.addService
+);
+
+serviceRegistry.registerPath({
+  method: "post",
+  path: "/services/addService",
+  tags: ["Services"],
+  requestBody: createApiBody(AddServiceRequestSchema),
+  responses: createApiResponse(z.string(), "Success"),
+});
+
+serviceRouter.post(
+"/addService",
+verifyToken,
+optionalFileUpload,
+serviceController.addService
+);
+
+serviceRegistry.registerPath({
+  method: "post",
+  path: "/services/getAssignmentList",
+  tags: ["Services"],
+  responses: createApiResponse(z.string(), "Success"),
+});
+
+serviceRouter.post(
+"/getAssignmentList",
+verifyToken,
+serviceController.getAssignmentList
+);
+
+serviceRegistry.registerPath({
+  method: "post",
+  path: "/services/assignmentor",
+  tags: ["Services"],
+  responses: createApiResponse(z.string(), "Success"),
+});
+
+serviceRouter.post(
+"/assignmentor",
+verifyToken,
+serviceController.assignMentor
+);
+
+
   

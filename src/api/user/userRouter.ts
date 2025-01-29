@@ -2,10 +2,11 @@ import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
 import express, { type Router } from "express";
 import { z } from "zod";
 import { createApiBody, createApiResponse } from "@/api-docs/openAPIResponseBuilders";
-import { GetCitySchema, GetStateSchema, GetUserSchema, UserConfirmResetPasswordSchema, UserResetPasswordSchema, UserSchema, UserSignInSchema,UserSignUpSchema } from "@/api/user/userModel";
-import { validateRequest } from "@/common/utils/httpHandlers";
+import { getStudentFilter, UserConfirmResetPasswordSchema, UserResetPasswordSchema, UserSchema, UserSignInSchema,UserSignUpSchema, MentorSignUpSchema } from "@/api/user/userModel";
 import { userController } from "./userController";
 import { verifyToken } from "@/common/middleware/jwtVerification";
+import { optionalFileUpload } from "@/common/middleware/uploadMiddleware";
+import { multipleFileUploadMiddleware } from "@/common/middleware/multipleFileUploadMiddleware";
 
 export const userRegistry = new OpenAPIRegistry();
 export const userRouter: Router = express.Router();
@@ -52,6 +53,15 @@ userRouter.post("/signup", userController.signUp);
 
 userRegistry.registerPath({
   method: "post",
+  path: "/users/addmentor",
+  tags: ["User"],
+  requestBody: createApiBody(MentorSignUpSchema),
+  responses: createApiResponse(z.object({ message: z.string() }), "Success"),
+});
+userRouter.post("/addmentor", multipleFileUploadMiddleware,userController.addMentor);
+
+userRegistry.registerPath({
+  method: "post",
   path: "/users/resetpassword",
   tags: ["User"],
   requestBody: createApiBody(UserResetPasswordSchema),
@@ -75,6 +85,23 @@ userRegistry.registerPath({
   responses: createApiResponse(z.object({ token: z.string() }), "Success"),
 });
 userRouter.get("/getsubjects",  verifyToken,userController.getSubjects);
+
+/* userRegistry.registerPath({
+  method: "post",
+  path: "/users/getstudents",
+  tags: ["User"],
+  requestBody: createApiBody(getStudentFilter),
+  responses: createApiResponse(z.object({ token: z.string() }), "Success"),
+});
+userRouter.post("/confirmresetpassword",userController.confirmResetPassword); */
+
+userRegistry.registerPath({
+  method: "post",
+  path: "/users/getstudents",
+  tags: ["User"],
+  responses: createApiResponse(z.object({ token: z.string() }), "Success"),
+});
+userRouter.post("/getstudents",  verifyToken,userController.getStudents);
 
 /* userRegistry.registerPath({
   method: "get",
@@ -103,6 +130,4 @@ userRegistry.registerPath({
 }); 
 
  userRouter.get("/getcities/:id", validateRequest(GetCitySchema), userController.getCities);
- 
- 
  */

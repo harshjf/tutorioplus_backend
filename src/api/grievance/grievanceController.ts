@@ -4,8 +4,9 @@ import { handleServiceResponse, validateRequest } from "@/common/utils/httpHandl
 import { GrievanceCreateSchema } from "./grievanceModel";
 
 class GrievanceController {
-  public getGrievances: RequestHandler = async (_req: Request, res: Response) => {
-    const serviceResponse = await grievanceService.getAllGrievances();
+  public getGrievances: RequestHandler = async (req: Request, res: Response) => {
+    const { filter, student_id } = req.body || {};
+    const serviceResponse = await grievanceService.getAllGrievances(filter,student_id);
     return handleServiceResponse(serviceResponse, res);
   };
 

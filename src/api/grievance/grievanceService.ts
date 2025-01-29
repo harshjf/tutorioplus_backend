@@ -1,5 +1,5 @@
 import { StatusCodes } from "http-status-codes";
-import type { Grievance } from "@/api/grievance/grievanceModel";
+import type { GetGrievanceListFilter, Grievance } from "@/api/grievance/grievanceModel";
 import { GrievanceRepository } from "@/api/grievance/grievanceRepository";
 import { ServiceResponse } from "@/common/models/serviceResponse";
 import { logger } from "@/server";
@@ -11,9 +11,9 @@ class GrievanceService {
     this.grievanceRepository = repository;
   }
 
-  async getAllGrievances(): Promise<ServiceResponse<Grievance[] | null>> {
+  async getAllGrievances(filter:GetGrievanceListFilter,student_id:string): Promise<ServiceResponse<Grievance[] | null>> {
     try {
-      const grievances = await this.grievanceRepository.getAllGrievances();
+      const grievances = await this.grievanceRepository.getAllGrievances(filter,student_id);
       return ServiceResponse.success<Grievance[]>("Grievances found", grievances);
     } catch (e) {
       const errorMessage = `Error occurred while fetching grievances: ${e}`;

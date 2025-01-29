@@ -49,4 +49,13 @@ export const SessionBasedServiceSchema=z.object({
     link:z.string().optional(),                                     
     created_at:z.date(),
     updated_at:z.date(),
+});
+
+export const GetAssignmentListFilter=z.object({
+  name:z.string(),
+  description:z.string(),
+  due_date:z.string(),
+  services:z.string(),
+  student_id: z.string().optional() 
 })
+export type GetAssignmentListFilter = z.infer<typeof GetAssignmentListFilter>;
