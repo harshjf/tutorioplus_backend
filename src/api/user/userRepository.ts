@@ -87,14 +87,15 @@ export class UserRepository {
     const result=await query(sql,[id]);
     return result;
   }
-  async insertMetaData(id:number,countryId:number,stateId:number,cityId:number,pinCode:string,purposeOfSignIn:string,firstPaymentDate:Date,address:string,phone:string){
-    const sql="INSERT INTO student_metadata(user_id,country_id,state_id,city_id,pincode,purpose_of_sign_in,first_payment_date,address,phone_number) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)";
-    const result=await query(sql,[id,countryId,stateId,cityId,pinCode,purposeOfSignIn,firstPaymentDate,address,phone]);
+  async insertMetaData(id:number,country:string,state:string,city:string,pinCode:string,purposeOfSignIn:string,firstPaymentDate:Date,address:string,phone:string){
+    const sql="INSERT INTO student_metadata(user_id,country,state,city,pincode,purpose_of_sign_in,first_payment_date,address,phone_number) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)";
+    console.log("Country,state,city")
+    const result=await query(sql,[id,country,state,city,pinCode,purposeOfSignIn,firstPaymentDate,address,phone]);
     return result;
   }
-  async insertMentorMetaData(id:number,phoneNumber:string,address:string,qualification:string,teachingExperience:number,jobType:string,country:string,state:string,city:string,photoPath:string,cvPath:string){
-    const sql="INSERT INTO mentor_metadata(user_id,phone_number,address,qualification,teaching_experience,job_type,cv,photo,country,state,city) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)";
-    const result=await query(sql,[id,phoneNumber,address,qualification,teachingExperience,jobType,cvPath,photoPath,country,state,city]);
+  async insertMentorMetaData(id:number,phoneNumber:string,address:string,qualification:string,teachingExperience:number,jobType:string,country:string,state:string,city:string,cvPath:string){
+    const sql="INSERT INTO mentor_metadata(user_id,phone_number,address,qualification,teaching_experience,job_type,cv,country,state,city) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)";
+    const result=await query(sql,[id,phoneNumber,address,qualification,teachingExperience,jobType,cvPath,country,state,city]);
     return result[0];
   }
   async saveResetToken(id:number, token:string, expiryDate:Date){

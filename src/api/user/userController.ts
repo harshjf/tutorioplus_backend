@@ -16,8 +16,8 @@ class UserController {
   };
 
   public signUp: RequestHandler = async(req: Request, res: Response) =>{
-    const {name,email,password,countryId,stateId,cityId,pinCode,purposeOfSignIn,first_payment_date,address,phone} = req.body;
-    const serviceResponse = await userService.signUp(name,email,password,countryId,stateId,cityId,pinCode,purposeOfSignIn,first_payment_date,address,phone);
+    const {name,email,password,country,state,city,pinCode,purposeOfSignIn,first_payment_date,address,phone} = req.body;
+    const serviceResponse = await userService.signUp(name,email,password,country,state,city,pinCode,purposeOfSignIn,first_payment_date,address,phone);
     return handleServiceResponse(serviceResponse,res);
   };
 

@@ -65,9 +65,9 @@ INSERT INTO subjects (name) VALUES
 CREATE TABLE student_metadata (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,  
-    country_id INT,  
-    state_id INT,    
-    city_id INT,     
+    country TEXT,  
+    state TEXT,    
+    city TEXT,     
     pincode VARCHAR(30),
 	address TEXT,
 	phone_number varchar(15),

@@ -48,7 +48,7 @@ export class UserService {
           const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET as string, {
             expiresIn: "24h",
           });
-          return ServiceResponse.success("Sign-in successful", { token });
+          return ServiceResponse.success("Sign-in successful", { token, user: user?.id });
         }
       }
     }catch(e){
@@ -58,12 +58,12 @@ export class UserService {
     }
   }
 
-  async signUp(name:string,email:string,password:string,countryId:number,stateId:number,cityId:number,pinCode:string,purposeOfSignIn:string,firstPaymentDate:Date,address:string,phone:string): Promise<ServiceResponse<User | null>>{
+  async signUp(name:string,email:string,password:string,country:string,state:string,city:string,pinCode:string,purposeOfSignIn:string,firstPaymentDate:Date,address:string,phone:string): Promise<ServiceResponse<User | null>>{
     const role_id=2;
     try{
       const hashedPassword = await bcrypt.hash(password, 10);
       const user=await this.userRepository.signUp(name,email,hashedPassword,role_id);
-      const result=await this.userRepository.insertMetaData(user?.id || 0,countryId,stateId,cityId,pinCode,purposeOfSignIn,firstPaymentDate,address,phone);
+      const result=await this.userRepository.insertMetaData(user?.id || 0,country,state,city,pinCode,purposeOfSignIn,firstPaymentDate,address,phone);
       return ServiceResponse.success("User added successfully!", user);
     }catch(e){
       const errorMessage = `Error during sign-up: ${e}`;
@@ -81,13 +81,13 @@ export class UserService {
 
       // adding data to mentor_metadata
       const cvPath = req.files && req.files.cv ? req.files.cv[0].path : null;
-      const photoPath = req.files && req.files.photo ? req.files.photo[0].path : null;
+     /*  const photoPath = req.files && req.files.photo ? req.files.photo[0].path : null; */
       const{phoneNumber,address,qualification,teachingExperience,jobType,country,state,city}=req.body;  
-      const result=await this.userRepository.insertMentorMetaData(user?.id || 0,phoneNumber,address,qualification,teachingExperience,jobType,country,state,city,photoPath,cvPath);
+      const result=await this.userRepository.insertMentorMetaData(user?.id || 0,phoneNumber,address,qualification,teachingExperience,jobType,country,state,city,cvPath);
       return ServiceResponse.success("Mentor added successfully!", result);
 
     }catch(e){
-      const errorMessage = `Error during sign-up: ${e}`;
+      const errorMessage = `Error during mentor sign-up: ${e}`;
       logger.error(errorMessage);
       return ServiceResponse.failure("An error occurred during sign-up", null, StatusCodes.INTERNAL_SERVER_ERROR);
     }
