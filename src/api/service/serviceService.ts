@@ -61,6 +61,21 @@ export class ServiceService {
       }
     }
 
+    async getSessionsList(filter:GetAssignmentListFilter, student_id:string) {
+      try {
+        const assignments = await this.serviceRepository.getSessionsList(filter,student_id);
+        if(assignments.length>0){
+          return ServiceResponse.success<DocumentBasedService[]>("Assignments retrieved successfully.", assignments);
+        }else{
+          return ServiceResponse.success<DocumentBasedService[]>("No assignments available for the given criteria.", assignments);
+        }        
+      } catch (e) {
+          const errorMessage = `Error occured during fetching assignments: ${e}`;
+          logger.error(errorMessage);
+          return ServiceResponse.failure("An error occurred during fetching assignments", null, StatusCodes.INTERNAL_SERVER_ERROR);
+      }
+    }
+
     async assignMentor(doc_based_service_id:number, mentor_id:number){
       try {
         const services = await this.serviceRepository.assignMentor(doc_based_service_id,mentor_id);
@@ -69,6 +84,75 @@ export class ServiceService {
           const errorMessage = `Error occured during fetching services: ${e}`;
           logger.error(errorMessage);
           return ServiceResponse.failure("An error occurred during fetching services", null, StatusCodes.INTERNAL_SERVER_ERROR);
+      }
+    }
+
+    async submitAnswer(req: any) {
+      try {
+        const { assignmentId, answer_description } = req.body;
+        const answerFilePath = req.file ? req.file.path : null;
+    
+        if (!assignmentId) {
+          return ServiceResponse.failure("Assignment ID is required", null, StatusCodes.BAD_REQUEST);
+        }
+    
+        const assignmentExists = await this.serviceRepository.checkAssignmentExists(assignmentId);
+        if (!assignmentExists) {
+          return ServiceResponse.failure("Assignment not found", null, StatusCodes.NOT_FOUND);
+        }
+    
+        const result=await this.serviceRepository.updateAnswer(assignmentId, answer_description, answerFilePath);
+         return ServiceResponse.success("Answer submitted successfully.", result);
+        
+        /* return ServiceResponse.success("Answer submitted successfully."); */
+      } catch (error) {
+        logger.error(`Error in submitAnswer: ${error}`);
+        return ServiceResponse.failure("An error occurred while submitting the answer", null, StatusCodes.INTERNAL_SERVER_ERROR);
+      }
+    }
+
+    async deleteAssignment(req:any) {
+      const { id} = req.body;
+      try {
+        if (!id) {
+          return ServiceResponse.failure("Assignment ID is required.", null, StatusCodes.BAD_REQUEST);
+        }    
+        const assignmentExists = await this.serviceRepository.checkAssignmentExists(id);
+        if (!assignmentExists) {
+          return ServiceResponse.failure("Assignment not found", null, StatusCodes.NOT_FOUND);
+        }
+        const deleted = await this.serviceRepository.deleteAssignment(id);
+        
+        if (deleted) {
+          return ServiceResponse.success("Assignment deleted successfully.", deleted);
+        } else {
+          return ServiceResponse.failure("Assignment not found or already deleted.", null, StatusCodes.NOT_FOUND);
+        }
+      } catch (e) {
+        logger.error(`Error deleting assignment: ${e}`);
+        return ServiceResponse.failure("An error occurred while deleting assignment.", null, StatusCodes.INTERNAL_SERVER_ERROR);
+      }
+    }
+    async deleteSession(req:any) {
+      const { id} = req.body;
+      try {
+        if (!id) {
+          return ServiceResponse.failure("Assignment ID is required.", null, StatusCodes.BAD_REQUEST);
+        }    
+        const assignmentExists = await this.serviceRepository.checkSessionExists(id);
+        if (!assignmentExists) {
+          return ServiceResponse.failure("Assignment not found", null, StatusCodes.NOT_FOUND);
+        }
+        const deleted = await this.serviceRepository.deleteSession(id);
+        
+        if (deleted) {
+          return ServiceResponse.success("Assignment deleted successfully.", deleted);
+        } else {
+          return ServiceResponse.failure("Assignment not found or already deleted.", null, StatusCodes.NOT_FOUND);
+        }
+      } catch (e) {
+        logger.error(`Error deleting assignment: ${e}`);
+        return ServiceResponse.failure("An error occurred while deleting assignment.", null, StatusCodes.INTERNAL_SERVER_ERROR);
       }
     }
 }

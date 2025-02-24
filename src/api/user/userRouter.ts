@@ -2,7 +2,7 @@ import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
 import express, { type Router } from "express";
 import { z } from "zod";
 import { createApiBody, createApiResponse } from "@/api-docs/openAPIResponseBuilders";
-import { getStudentFilter, UserConfirmResetPasswordSchema, UserResetPasswordSchema, UserSchema, UserSignInSchema,UserSignUpSchema, MentorSignUpSchema } from "@/api/user/userModel";
+import { getStudentFilter, UserConfirmResetPasswordSchema, UserResetPasswordSchema, UserSchema, UserSignInSchema,UserSignUpSchema, MentorSignUpSchema, StudentSchema } from "@/api/user/userModel";
 import { userController } from "./userController";
 import { verifyToken } from "@/common/middleware/jwtVerification";
 import { optionalFileUpload } from "@/common/middleware/uploadMiddleware";
@@ -12,6 +12,8 @@ export const userRegistry = new OpenAPIRegistry();
 export const userRouter: Router = express.Router();
 
 userRegistry.register("User", UserSchema);
+
+
 
 userRegistry.registerPath({
   method: "get",
@@ -86,48 +88,37 @@ userRegistry.registerPath({
 });
 userRouter.get("/getsubjects",  verifyToken,userController.getSubjects);
 
-/* userRegistry.registerPath({
-  method: "post",
-  path: "/users/getstudents",
-  tags: ["User"],
-  requestBody: createApiBody(getStudentFilter),
-  responses: createApiResponse(z.object({ token: z.string() }), "Success"),
-});
-userRouter.post("/confirmresetpassword",userController.confirmResetPassword); */
-
 userRegistry.registerPath({
   method: "post",
   path: "/users/getstudents",
   tags: ["User"],
   responses: createApiResponse(z.object({ token: z.string() }), "Success"),
 });
-userRouter.post("/getstudents",  verifyToken,userController.getStudents);
+userRouter.post("/getstudents",  verifyToken ,userController.getStudents);
 
-/* userRegistry.registerPath({
-  method: "get",
-  path: "/users/getcountries",
+userRegistry.registerPath({
+  method: "post",
+  path: "/users/editstudent",
   tags: ["User"],
-  responses: createApiResponse(z.object({ token: z.string() }), "Success"),
+  responses: createApiResponse(z.object({ message: z.string() }), "Success"),
 });
-userRouter.get("/getcountries", userController.getCountries);
+userRouter.post("/editstudent",verifyToken, userController.editStudent);
+
+userRegistry.registerPath({
+  method: "post",
+  path: "/users/deleteuser",
+  tags: ["User"],
+  responses: createApiResponse(z.object({ message: z.string() }), "Success"),
+});
+userRouter.post("/deleteuser",verifyToken, userController.deleteUser);
 
 userRegistry.registerPath({
   method: "get",
-  path: "/users/getstates/{id}",
+  path: "/users/getstudent/{id}",
   tags: ["User"],
-  request: { params: GetStateSchema.shape.params },
-  responses: createApiResponse(GetStateSchema, "Success"),
-}); 
+  responses: createApiResponse(StudentSchema, "Success"),
+});
 
- userRouter.get("/getstates/:id", validateRequest(GetStateSchema), userController.getStates);
+userRouter.get("/getstudent/:id",verifyToken, userController.getStudent);
 
- userRegistry.registerPath({
-  method: "get",
-  path: "/users/getcities/{id}",
-  tags: ["User"],
-  request: { params: GetCitySchema.shape.params },
-  responses: createApiResponse(GetCitySchema, "Success"),
-}); 
 
- userRouter.get("/getcities/:id", validateRequest(GetCitySchema), userController.getCities);
- */

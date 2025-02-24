@@ -22,30 +22,6 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE TABLE countries (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-	dial_code varchar(5) NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
-);
-
-CREATE TABLE states (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL, 
-    country_id INT REFERENCES countries(id) ON DELETE CASCADE, 
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
-);
-
-CREATE TABLE cities (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL, 
-    state_id INT REFERENCES states(id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
-);
-
 CREATE TABLE subjects (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL
@@ -190,6 +166,20 @@ ON DELETE SET NULL;
 
 ALTER TABLE document_based_services
 ADD COLUMN updated_at TIMESTAMP DEFAULT NOW();
+ALTER TABLE users ADD COLUMN active BOOLEAN DEFAULT TRUE;
+
+ALTER TABLE document_based_services 
+ADD COLUMN answer_file_path TEXT,
+ADD COLUMN answer_description TEXT;
+
+ALTER TABLE grievances ADD COLUMN active BOOLEAN DEFAULT TRUE;
+
+ALTER TABLE document_based_services
+ADD COLUMN active BOOLEAN DEFAULT TRUE;
+
+ALTER TABLE session_based_services
+ADD COLUMN active BOOLEAN DEFAULT TRUE;
+
 
 /* for vivek */
 ALTER TABLE document_based_services

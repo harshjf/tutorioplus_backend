@@ -48,7 +48,12 @@ export class UserService {
           const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET as string, {
             expiresIn: "24h",
           });
-          return ServiceResponse.success("Sign-in successful", { token, user: user?.id });
+          return ServiceResponse.success("Sign-in successful", { token, user: { 
+            id: user.id, 
+            email: user.email, 
+            role_id: user.role_id, 
+            role_name: user.role
+        }  });
         }
       }
     }catch(e){
@@ -58,7 +63,7 @@ export class UserService {
     }
   }
 
-  async signUp(name:string,email:string,password:string,country:string,state:string,city:string,pinCode:string,purposeOfSignIn:string,firstPaymentDate:Date,address:string,phone:string): Promise<ServiceResponse<User | null>>{
+  async signUp(name:string,email:string,password:string,country:string,state:string,city:string,pinCode:string,purposeOfSignIn:string,firstPaymentDate:Date | null,address:string,phone:string): Promise<ServiceResponse<User | null>>{
     const role_id=2;
     try{
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -92,6 +97,7 @@ export class UserService {
       return ServiceResponse.failure("An error occurred during sign-up", null, StatusCodes.INTERNAL_SERVER_ERROR);
     }
   }
+
   async resetPassword(email:string){
     try{
       const user = await this.userRepository.findByEmailAsync(email);
@@ -166,42 +172,67 @@ export class UserService {
     }catch(e){
       const errorMessage = `Error during fetching students: ${e}`;
       logger.error(errorMessage);
-      return ServiceResponse.failure("An error occurred during fetching subjects", null, StatusCodes.INTERNAL_SERVER_ERROR);
+      return ServiceResponse.failure("An error occurred during fetching students", null, StatusCodes.INTERNAL_SERVER_ERROR);
     }
   }
 
-  async getAllCountries(): Promise<ServiceResponse<Country[] | null>> {
+  async editStudent(
+    id: number,
+    name: string,
+    email: string,
+    country: string,
+    state: string,
+    city: string,
+    pinCode: string,
+    address: string,
+    phone: string
+  ): Promise<ServiceResponse<User | null>> {
     try {
-     const countries=await this.userRepository.getAllCountries();
-     return ServiceResponse.success<Country[]>("Countries!", countries);
+      const user = await this.userRepository.editStudent(id, name, email);
+      if (!user) {
+        return ServiceResponse.failure("User not found", null, StatusCodes.NOT_FOUND);
+      } 
+      const result=await this.userRepository.updateMetaData(id, country, state, city, pinCode, address, phone); 
+      return ServiceResponse.success("User updated successfully!", user);
     } catch (e) {
-      const errorMessage = `Error during fetching countries: ${e}`;
+      const errorMessage = `Error during student edit: ${e}`;
       logger.error(errorMessage);
-      return ServiceResponse.failure("An error occurred during fetching countries", null, StatusCodes.INTERNAL_SERVER_ERROR);
+      return ServiceResponse.failure("An error occurred while updating student details", null, StatusCodes.INTERNAL_SERVER_ERROR);
     }
   }
 
-  async getStates(id:number): Promise<ServiceResponse<State[] | null>> {
+  async deleteUser(id: number): Promise<ServiceResponse<null>> {
     try {
-     const states=await this.userRepository.getStates(id);
-     return ServiceResponse.success<State[]>("States!", states);
+      const user = await this.userRepository.deactivateUser(id);
+      if (!user) {
+        return ServiceResponse.failure("User not found", null, StatusCodes.NOT_FOUND);
+      }      
+      return ServiceResponse.success("Student deactivated successfully!", null);
     } catch (e) {
-      const errorMessage = `Error during fetching states: ${e}`;
+      const errorMessage = `Error during student deletion: ${e}`;
       logger.error(errorMessage);
-      return ServiceResponse.failure("An error occurred during fetching states", null, StatusCodes.INTERNAL_SERVER_ERROR);
+      return ServiceResponse.failure("An error occurred while deleting student", null, StatusCodes.INTERNAL_SERVER_ERROR);
     }
   }
 
-  async getCities(id:number): Promise<ServiceResponse<City[] | null>> {
+  async findById(userId: number): Promise<ServiceResponse<User | null>> {
     try {
-     const cities=await this.userRepository.getCities(id);
-     return ServiceResponse.success<City[]>("Cities!", cities);
-    } catch (e) {
-      const errorMessage = `Error during fetching cities: ${e}`;
+      const student = await this.userRepository.findByIdAsync(userId);
+      if (!student) {
+        return ServiceResponse.failure("Student not found", null, StatusCodes.NOT_FOUND);
+      }
+      return ServiceResponse.success<User>("Student found", student);
+    } catch (ex) {
+      const errorMessage = `Error finding student: ${(ex as Error).message}`;
       logger.error(errorMessage);
-      return ServiceResponse.failure("An error occurred during fetching cities", null, StatusCodes.INTERNAL_SERVER_ERROR);
+      return ServiceResponse.failure(
+        "An error occurred while retrieving the student.",
+        null,
+        StatusCodes.INTERNAL_SERVER_ERROR,
+      );
     }
   }
+  
 
 }
 

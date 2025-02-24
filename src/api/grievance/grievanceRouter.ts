@@ -27,4 +27,14 @@ grievanceRegistry.registerPath({
     responses: createApiResponse(GrievanceSchema, "Success"),
   });
   
-  grievanceRouter.post("/addGrievance",verifyToken, grievanceController.createGrievance);
+grievanceRouter.post("/addGrievance",verifyToken, grievanceController.createGrievance);
+
+grievanceRegistry.registerPath({
+  method: "post",
+  path: "/grievances",
+  tags: ["Grievance"],
+  responses: createApiResponse(GrievanceSchema, "Success"),
+});
+
+grievanceRouter.post("/deleteGrievance",verifyToken, grievanceController.deleteGrievance);
+

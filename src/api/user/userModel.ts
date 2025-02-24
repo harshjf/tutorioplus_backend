@@ -54,6 +54,9 @@ export type subject = z.infer<typeof SubjectSchema>;
 export const StudentSchema = z.object({
   user_id: z.number(),
   user_name: z.string(),
+  country:z.string(),
+  state:z.string(),
+  city:z.string(),
   user_email: z.string().email(),
   user_role_id: z.number(),
   metadata_id: z.number(),

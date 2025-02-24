@@ -23,7 +23,7 @@ dotenv.config();
 const secretKey = crypto.randomBytes(32).toString("hex");
 
 const corsOptions = {
-    origin: "http://localhost:3000" /* env.CORS_ORIGIN */, 
+    origin: ["http://localhost:3000", "http://localhost:3001" ]/* env.CORS_ORIGIN */, 
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], 
     allowedHeaders: ['Content-Type', 'Authorization'], 
     credentials: true,

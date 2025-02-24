@@ -36,6 +36,26 @@ class GrievanceService {
       return ServiceResponse.failure("An error occurred while adding grievance",null,StatusCodes.INTERNAL_SERVER_ERROR);
     }
   }
+  async deleteGrievance(grievanceId: number): Promise<ServiceResponse<null>> {
+    try {
+        const grievanceExists = await this.grievanceRepository.getGrievanceById(grievanceId);
+        if (!grievanceExists) {
+            return ServiceResponse.failure("Grievance not found", null, StatusCodes.NOT_FOUND);
+        }
+
+        await this.grievanceRepository.softDeleteGrievance(grievanceId);
+        return ServiceResponse.success("Grievance deleted successfully", null);
+    } catch (e) {
+        const errorMessage = `Error deleting grievance: ${e}`;
+        logger.error(errorMessage);
+        return ServiceResponse.failure(
+            "An error occurred while deleting grievance",
+            null,
+            StatusCodes.INTERNAL_SERVER_ERROR
+        );
+    }
+}
+
 }
 
 export const grievanceService = new GrievanceService();

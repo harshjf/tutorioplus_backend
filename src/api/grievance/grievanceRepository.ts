@@ -4,7 +4,8 @@ import { query } from "@/common/models/database";
 export class GrievanceRepository {
   async getAllGrievances(filter:GetGrievanceListFilter, student_id:string): Promise<Grievance[]> {
     let sql = `SELECT 
-      g.id AS grievance_id,
+      g.id,
+      u.id AS user_id,
       u.name AS student_name,
       u.email AS student_email,
       sm.phone_number AS student_phone,
@@ -19,7 +20,8 @@ export class GrievanceRepository {
       JOIN 
           student_metadata sm ON u.id = sm.user_id
       JOIN 
-          services s ON g.service_id = s.id`;
+          services s ON g.service_id = s.id
+      WHERE g.active = TRUE`;
     
     const conditions: string[] = [];
     const values: any[] = [];
@@ -92,4 +94,13 @@ export class GrievanceRepository {
     const result = await query(sql, values);
     return result[0];
   }
+  async getGrievanceById(grievanceId: number): Promise<Grievance | null> {
+    const sql = `SELECT * FROM grievances WHERE id = $1 AND active = TRUE`;
+    const result = await query(sql, [grievanceId]);
+    return result[0];
+  }
+  async softDeleteGrievance(grievanceId: number): Promise<void> {
+    const sql = `UPDATE grievances SET active = FALSE WHERE id = $1`;
+    await query(sql, [grievanceId]);
+}
 }

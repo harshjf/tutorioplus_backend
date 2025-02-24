@@ -20,11 +20,31 @@ class ServiceController{
       return handleServiceResponse(serviceResponse, res);
     };
 
+    public getSessionsList: RequestHandler = async(req: Request, res:Response) =>{
+      const { filter, student_id } = req.body || {};
+      const serviceResponse = await serviceService.getSessionsList(filter, student_id);
+      return handleServiceResponse(serviceResponse, res);
+    };
+
     public assignMentor: RequestHandler = async(req: Request, res: Response) =>{
       const{doc_based_service_id, mentor_id} = req.body || {};
       const serviceResponse = await serviceService.assignMentor(doc_based_service_id, mentor_id);
       return handleServiceResponse(serviceResponse, res);
-    }
+    };
+ 
+    public submitAnswer: RequestHandler = async (req: Request, res: Response) => {
+      const serviceResponse = await serviceService.submitAnswer(req);
+      return handleServiceResponse(serviceResponse, res);
+    };
+    public deleteAssignment: RequestHandler = async (req: Request, res: Response) => {
+      const serviceResponse = await serviceService.deleteAssignment(req);
+      return handleServiceResponse(serviceResponse, res);
+    };
+    public deleteSession: RequestHandler = async (req: Request, res: Response) => {
+      const serviceResponse = await serviceService.deleteSession(req);
+      return handleServiceResponse(serviceResponse, res);
+    };
+    
 }
 
 export const serviceController = new ServiceController();

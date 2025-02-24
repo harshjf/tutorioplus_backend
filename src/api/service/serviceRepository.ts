@@ -1,6 +1,7 @@
 import type { DocumentBasedService, GetAssignmentListFilter, Service, SessionBasedService } from "@/api/service/serviceModel";
 import {query} from "@/common/models/database";
 import fs from 'fs/promises';
+import mime from "mime-types";
 
 export class ServiceRepository {
     async getAllServices(): Promise<Service[]> {
@@ -63,12 +64,15 @@ export class ServiceRepository {
             s.service_type AS service_name,
             dbs.doc_path,
             dbs.description,
+            dbs.answer_file_path,
+            dbs.answer_description,
             dbs.due_date,
             dbs.created_at,
             dbs.updated_at
         FROM document_based_services dbs
         JOIN users u ON dbs.student_id = u.id
         JOIN services s ON dbs.service_id=s.id
+        WHERE dbs.active = true
         `;
         const conditions: string[] = [];
         const values: any[] = [];
@@ -109,14 +113,85 @@ export class ServiceRepository {
                 try {
                     const fileBuffer = await fs.readFile(item.doc_path);
                     item.doc_base64 = fileBuffer.toString('base64');
+                    item.doc_mimetype = mime.lookup(item.doc_path) || 'application/octet-stream';
                 } catch (error) {
                     console.error(`Error reading file ${item.doc_path}:`, error);
                     item.doc_base64 = null; 
+                    item.doc_mimetype = null;
                 }
             } else {
                 item.doc_base64 = null;
+                item.doc_mimetype = null;
+            }
+            if (item.answer_file_path) {
+                try {
+                    const answerBuffer = await fs.readFile(item.answer_file_path);
+                    item.answer_base64 = answerBuffer.toString("base64");
+                    item.answer_mimetype = mime.lookup(item.answer_file_path) || "application/octet-stream";
+                } catch (error) {
+                    console.error(`Error reading file ${item.answer_file_path}:`, error);
+                    item.answer_base64 = null;
+                    item.answer_mimetype = null;
+                }
+            } else {
+                item.answer_base64 = null;
+                item.answer_mimetype = null;
             }
         }
+        return result;
+    }
+    async getSessionsList(filter:GetAssignmentListFilter, student_id:string){
+        let sql = `
+         SELECT 
+            sbs.id,
+            sbs.student_id,
+            u.name AS student_name,  
+            sbs.mentor_id,
+            sbs.service_id,
+            sbs.schedule_time,
+            sbs.duration,
+            s.service_type AS service_name,
+            sbs.created_at,
+            sbs.updated_at
+        FROM session_based_services sbs
+        JOIN users u ON sbs.student_id = u.id
+        JOIN services s ON sbs.service_id=s.id
+        WHERE sbs.active = true
+        `;
+        const conditions: string[] = [];
+        const values: any[] = [];
+        if(filter){
+            if (filter.name) {
+                conditions.push(`u.name ILIKE $${values.length + 1}`);
+                values.push(`%${filter.name}%`);
+            }
+            if (filter.description) {
+                conditions.push(`sbs.description ILIKE $${values.length + 1}`);
+                values.push(`%${filter.description}%`);
+            }
+            if (filter.due_date) {
+                const formattedDate = new Date(filter.due_date).toISOString().split('T')[0];
+                conditions.push(`sbs.due_date::DATE = $${values.length + 1}`);           
+                values.push(formattedDate);
+            }
+            if (filter.services) {
+                const serviceIds = filter.services.replace(/&comma;/g, ',').split(',').map(Number);
+                
+                if (serviceIds.length > 0) {
+                    conditions.push(`sbs.service_id = ANY($${values.length + 1})`);
+                    values.push(serviceIds);
+                }
+            }
+        }
+        if (student_id) {
+            conditions.push(`sbs.student_id = $${values.length + 1}`);
+            values.push(student_id);
+        }
+        if (conditions.length > 0) {
+            sql += ` WHERE ` + conditions.join(' AND ');
+        }
+
+        const result = await query(sql, values);
         return result;
     }
     async assignMentor(doc_based_service_id:number, mentor_id:number){
@@ -129,4 +204,48 @@ export class ServiceRepository {
         const result = await query(sql, values);
         return result;
     }
+
+    async checkAssignmentExists(id: number) {
+        const sql = `SELECT id FROM document_based_services WHERE id = $1`;
+        const result = await query(sql, [id]);
+        return result.length > 0;
+      }
+      async checkSessionExists(id: number) {
+        const sql = `SELECT id FROM session_based_services WHERE id = $1`;
+        const result = await query(sql, [id]);
+        return result.length > 0;
+      }
+    async updateAnswer(id: number, answer_description: string, answer_file_path: string | null) {
+        const sql = `
+          UPDATE document_based_services 
+          SET answer_description = $1, 
+              answer_file_path = $2, 
+              updated_at = NOW() 
+          WHERE id = $3
+        `;
+        await query(sql, [answer_description, answer_file_path, id]);
+    }     
+    async deleteAssignment(id: number) {
+        const sql = `
+          UPDATE document_based_services 
+          SET active = FALSE
+          WHERE id = $1 
+          returning *
+        `;
+        
+        const result = await query(sql, [id]);
+        return result[0];
+      }
+      async deleteSession(id: number) {
+        const sql = `
+          UPDATE session_based_services 
+          SET active = FALSE
+          WHERE id = $1 
+          returning *
+        `;
+        
+        const result = await query(sql, [id]);
+        return result[0];
+      }
+      
 }

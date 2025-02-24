@@ -3,18 +3,20 @@ import {query} from "@/common/models/database"
 
 export class UserRepository {
   async findAllAsync(){
-    const sql = "SELECT * FROM users";
+    const sql = "SELECT * FROM users WHERE active=true";
     const result= await query(sql);
     return result;
   }
   async isTokenValid(token:string){
-    //console.log("Token",token);
     const sql="SELECT * FROM reset_password WHERE token=$1";
     const result=await query(sql,[token]);
     return result[0];
   }
   async findByEmailAsync(email:string){
-    const sql="SELECT * FROM users WHERE email=$1";
+    const sql=`SELECT u.*, r.role 
+        FROM users u
+        JOIN roles r ON u.role_id = r.id
+        WHERE u.email = $1 AND u.active = true`;
     const result=await query(sql,[email]);
     return result[0];
   }
@@ -28,8 +30,9 @@ export class UserRepository {
     const result=await query(sql);
     return result;
   }
-  async getStudents(filter:getStudentFilter){
-    let sql=`  SELECT 
+  async getStudents(filter: getStudentFilter) {
+    let sql = `  
+      SELECT 
         u.id AS user_id,
         u.name AS user_name,
         u.email AS user_email,
@@ -45,49 +48,39 @@ export class UserRepository {
       FROM 
         users u
       JOIN 
-        student_metadata sm ON u.id = sm.user_id`;
+        student_metadata sm ON u.id = sm.user_id
+      WHERE 
+        u.active = true`; 
+  
     const conditions: string[] = [];
     const values: any[] = [];
-      
-        
-    if (filter.email) {
-      conditions.push(`u.email = $${values.length + 1}`);
-      values.push(`${filter.email}`);
+  
+    if (filter) {
+      if (filter.email) {
+        conditions.push(`u.email = $${values.length + 1}`);
+        values.push(`${filter.email}`);
+      }
+      if (filter.name) {
+        conditions.push(`u.name = $${values.length + 1}`);
+        values.push(`${filter.name}`);
+      }
+      if (filter.phone_number) {
+        conditions.push(`sm.phone_number = $${values.length + 1}`);
+        values.push(`${filter.phone_number}`);
+      }
     }
-    if (filter.name) {
-      conditions.push(`u.name = $${values.length + 1}`);
-      values.push(`${filter.name}`);
-    }
-    if (filter.phone_number) {
-      conditions.push(`sm.phone_number = $${values.length + 1}`);
-      values.push(`${filter.phone_number}`);
-    }
-      
+  
     if (conditions.length > 0) {
-      sql += ` WHERE ` + conditions.join(' AND ');
+      sql += ` AND ` + conditions.join(' AND ');
     }
-    console.log("Values",values);
-    const result=await query(sql,values);
-    console.log("Query",sql);
-    console.log("result",result);
+  
+    /* console.log("Values", values); */
+    const result = await query(sql, values);
+ /*    console.log("Query", sql);
+    console.log("result", result); */
     return result;
-  }
-  async getAllCountries(){
-    const sql="SELECT * FROM countries";
-    const result=await query(sql);
-    return result;
-  }
-  async getStates(id:number){
-    const sql="SELECT * FROM states where country_id=$1";
-    const result=await query(sql,[id]);
-    return result;
-  }
-  async getCities(id:number){
-    const sql="SELECT * FROM cities where state_id=$1";
-    const result=await query(sql,[id]);
-    return result;
-  }
-  async insertMetaData(id:number,country:string,state:string,city:string,pinCode:string,purposeOfSignIn:string,firstPaymentDate:Date,address:string,phone:string){
+  }  
+  async insertMetaData(id:number,country:string,state:string,city:string,pinCode:string,purposeOfSignIn:string,firstPaymentDate:Date | null,address:string,phone:string){
     const sql="INSERT INTO student_metadata(user_id,country,state,city,pincode,purpose_of_sign_in,first_payment_date,address,phone_number) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)";
     console.log("Country,state,city")
     const result=await query(sql,[id,country,state,city,pinCode,purposeOfSignIn,firstPaymentDate,address,phone]);
@@ -119,4 +112,45 @@ export class UserRepository {
     const result=await query(sql,[id]);
     return result;
   }
+  async editStudent(id: number, name: string, email: string) {
+    const sql = "UPDATE users SET name = $1, email = $2 WHERE id = $3 RETURNING *";
+    const result = await query(sql, [name, email, id]);
+    return result[0]; // Return updated user
+  }
+  async updateMetaData(
+    id: number,
+    country: string,
+    state: string,
+    city: string,
+    pinCode: string,
+    address: string,
+    phone: string
+  ) {
+    const sql = `UPDATE student_metadata 
+                SET country = $2, state = $3, city = $4, pincode = $5, 
+                    address = $6, phone_number = $7 
+                WHERE user_id = $1`;
+    const result = await query(sql, [id, country, state, city, pinCode, address, phone]);
+    return result[0];
+  }
+  async deactivateUser(id: number) {
+    const sql = "UPDATE users SET active = false WHERE id = $1 RETURNING *";
+    const result = await query(sql, [id]);
+    return result[0];
+  }  
+  async findByIdAsync(userId: number) {
+    const sql = `
+      SELECT 
+        u.id, u.name, u.email, u.role_id, u.created_at, u.updated_at,
+        sm.country, sm.state, sm.city, sm.pincode, sm.address, sm.phone_number, 
+        sm.purpose_of_sign_in, sm.first_payment_date
+      FROM users u
+      LEFT JOIN student_metadata sm ON u.id = sm.user_id
+      WHERE u.id = $1 AND u.active = true
+    `;
+    
+    const result = await query(sql, [userId]);
+    return result.length ? result[0] : null;
+  }
+  
 }

@@ -20,7 +20,7 @@ const storage = multer.diskStorage({
       cb(null, "placeholder.txt"); 
       return;
     }
-    const serviceId = req.body.serviceId || "unknown";
+    const serviceId = req.body.serviceId || "new";
     cb(null, `doc_${serviceId}${path.extname(file.originalname)}`);
   },
 });
