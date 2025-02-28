@@ -204,17 +204,16 @@ export class ServiceRepository {
         const result = await query(sql, values);
         return result;
     }
-
     async checkAssignmentExists(id: number) {
         const sql = `SELECT id FROM document_based_services WHERE id = $1`;
         const result = await query(sql, [id]);
         return result.length > 0;
-      }
-      async checkSessionExists(id: number) {
+    }
+    async checkSessionExists(id: number) {
         const sql = `SELECT id FROM session_based_services WHERE id = $1`;
         const result = await query(sql, [id]);
         return result.length > 0;
-      }
+    }
     async updateAnswer(id: number, answer_description: string, answer_file_path: string | null) {
         const sql = `
           UPDATE document_based_services 
@@ -235,8 +234,8 @@ export class ServiceRepository {
         
         const result = await query(sql, [id]);
         return result[0];
-      }
-      async deleteSession(id: number) {
+    }
+    async deleteSession(id: number) {
         const sql = `
           UPDATE session_based_services 
           SET active = FALSE
@@ -246,6 +245,6 @@ export class ServiceRepository {
         
         const result = await query(sql, [id]);
         return result[0];
-      }
+    }
       
 }

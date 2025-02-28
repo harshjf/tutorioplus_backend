@@ -1,5 +1,8 @@
-import type { City, Country, getStudentFilter, State, User } from "@/api/user/userModel";
-import {query} from "@/common/models/database"
+import type { City, Country, getMentorFilter, getStudentFilter, State, User } from "@/api/user/userModel";
+import {query} from "@/common/models/database";
+import { stat } from "fs";
+import fs from 'fs/promises';
+import mime from "mime";
 
 export class UserRepository {
   async findAllAsync(){
@@ -97,14 +100,13 @@ export class UserRepository {
     return result;
   }
   async resetPassword(id:number,password:string){
-    console.log("Id",id);
     try{
       const sql="UPDATE users SET password=$2 WHERE id=$1 returning *";
       const result=await query(sql,[id,password]);
       return result;
     }
    catch(e){
-    console.log("Error while inserting");
+    console.log(`Error resetting password for user ${id}: ${e}`);
    }
   }
   async tokenUsed(id:number){
@@ -152,5 +154,87 @@ export class UserRepository {
     const result = await query(sql, [userId]);
     return result.length ? result[0] : null;
   }
+  async getMentors(filter: getMentorFilter) {
+    let sql = `  
+      SELECT 
+        u.id AS user_id,
+        u.name AS user_name,
+        u.email AS user_email,
+        u.role_id AS user_role_id,
+        mm.id AS metadata_id,
+        mm.phone_number,
+        mm.address,
+        mm.qualification,
+        mm.teaching_experience,
+        mm.job_type,
+        mm.cv,
+        mm.country,
+        mm.state,
+        mm.city
+      FROM 
+        users u
+      JOIN 
+        mentor_metadata mm ON u.id = mm.user_id
+      WHERE 
+        u.active = true`; 
   
+    const conditions: string[] = [];
+    const values: any[] = [];
+  
+    if (filter) {
+      if (filter.email) {
+        conditions.push(`u.email = $${values.length + 1}`);
+        values.push(`${filter.email}`);
+      }
+      if (filter.name) {
+        conditions.push(`u.name = $${values.length + 1}`);
+        values.push(`${filter.name}`);
+      }
+      if (filter.phone_number) {
+        conditions.push(`mm.phone_number = $${values.length + 1}`);
+        values.push(`${filter.phone_number}`);
+      }
+    }
+  
+    if (conditions.length > 0) {
+      sql += ` AND ` + conditions.join(' AND ');
+    }
+    const result = await query(sql, values);
+
+    for (const mentor of result) {
+      if (mentor.cv) {
+          try {
+              const fileBuffer = await fs.readFile(mentor.cv);
+              mentor.cv_base64 = fileBuffer.toString('base64');
+
+              // Extract MIME type
+              const mimeType = mime.lookup(mentor.cv) || 'application/octet-stream';
+              mentor.cv_mimetype = mimeType;
+
+          } catch (error) {
+              console.error(`Error reading file ${mentor.cv}:`, error);
+              mentor.cv_base64 = null;
+              mentor.cv_mimetype = null;
+          }
+      } else {
+          mentor.cv_base64 = null;
+          mentor.cv_mimetype = null;
+      }
+  }
+    return result;
+  }  
+  async editMentor(id: number, name: string, email: string) {
+    const sql = "UPDATE users SET name = $1, email = $2 WHERE id = $3 RETURNING *";
+    const result = await query(sql, [name, email, id]);
+    return result[0]; 
+  }
+  async updateMentorMetaData(id:number, cv:string, phoneNumber:string, address:string, qualification:string, teachingExperience:string, jobType:string, country:string, state:string, city:string){
+    const sql = `UPDATE mentor_metadata 
+                SET cv = $2, phone_number=$3, address=$4,
+                qualification=$5, teaching_experience = $6,
+                job_type=$7, country=$8, state=$9, city=$10
+                WHERE user_id = $1`;
+    const result = await query(sql, [id,cv,phoneNumber,address,qualification,teachingExperience,jobType,country,state,city]);
+    return result[0];
+  }
 }

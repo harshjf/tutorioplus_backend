@@ -66,7 +66,6 @@ CREATE TABLE mentor_metadata (
     country TEXT,
     state TEXT, 
     city TEXT,  
-    active BOOLEAN DEFAULT TRUE,
     approve BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
@@ -186,4 +185,6 @@ ALTER TABLE document_based_services
 ALTER COLUMN subject_id DROP NOT NULL;
 
 ALTER TABLE users ADD CONSTRAINT unique_email UNIQUE (email);
+
+ALTER TABLE mentor_metadata DROP COLUMN active;
 

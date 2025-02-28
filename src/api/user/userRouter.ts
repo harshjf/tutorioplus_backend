@@ -121,4 +121,19 @@ userRegistry.registerPath({
 
 userRouter.get("/getstudent/:id",verifyToken, userController.getStudent);
 
+userRegistry.registerPath({
+  method: "post",
+  path: "/users/getmentors",
+  tags: ["User"],
+  responses: createApiResponse(z.object({ token: z.string() }), "Success"),
+});
+userRouter.post("/getmentors",  verifyToken ,userController.getMentors);
 
+userRegistry.registerPath({
+  method: "post",
+  path: "/users/editmentor",
+  tags: ["User"],
+  requestBody: createApiBody(MentorSignUpSchema),
+  responses: createApiResponse(z.object({ message: z.string() }), "Success"),
+});
+userRouter.post("/editmentor", multipleFileUploadMiddleware,userController.editMentor);

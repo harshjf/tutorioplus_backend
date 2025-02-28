@@ -72,7 +72,17 @@ class UserController {
     const serviceResponse = await userService.findById(Number(id));
     return handleServiceResponse(serviceResponse, res);
   }
-  
+  public getMentors: RequestHandler=async(req: Request, res:Response)=>{
+    const {filter} = req.body;
+    const serviceResponse=await userService.getMentors(filter);
+    return handleServiceResponse(serviceResponse,res);
+  }
+  public editMentor: RequestHandler = async(req: Request, res: Response) =>{
+    const serviceResponse = await userService.editMentor(req);
+    return handleServiceResponse(serviceResponse,res);
+  };
 }
+
+
 
 export const userController = new UserController();

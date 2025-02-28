@@ -1,6 +1,6 @@
 import { StatusCodes } from "http-status-codes";
 
-import type { City, Country, State, Student, User, getStudentFilter, subject } from "@/api/user/userModel";
+import type { City, Country, State, Student, User, getStudentFilter, subject, getMentorFilter } from "@/api/user/userModel";
 import { UserRepository } from "@/api/user/userRepository";
 import { ServiceResponse } from "@/common/models/serviceResponse";
 import { logger } from "@/server";
@@ -83,8 +83,6 @@ export class UserService {
     try{
       const hashedPassword = await bcrypt.hash(password, 10);
       const user=await this.userRepository.signUp(name,email,hashedPassword,role_id);
-
-      // adding data to mentor_metadata
       const cvPath = req.files && req.files.cv ? req.files.cv[0].path : null;
      /*  const photoPath = req.files && req.files.photo ? req.files.photo[0].path : null; */
       const{phoneNumber,address,qualification,teachingExperience,jobType,country,state,city}=req.body;  
@@ -233,7 +231,35 @@ export class UserService {
     }
   }
   
+  async getMentors(filter:getMentorFilter): Promise<ServiceResponse<Student[] | null>>{
+    try{
+      const students = await this.userRepository.getMentors(filter);
+      return ServiceResponse.success<Student[]>("Mentors!",students);
+    }catch(e){
+      const errorMessage = `Error during fetching mentors: ${e}`;
+      logger.error(errorMessage);
+      return ServiceResponse.failure("An error occurred during fetching mentors", null, StatusCodes.INTERNAL_SERVER_ERROR);
+    }
+  }
 
+  async editMentor(req:any): Promise<ServiceResponse<User | null>>{
+    const{id,name,email}=req.body;
+    console.log("id,name,email",id,name,email);
+    try {
+      const user = await this.userRepository.editMentor(id,name,email);
+      if (!user) {
+        return ServiceResponse.failure("User not found", null, StatusCodes.NOT_FOUND);
+      } 
+      const cvPath = req.files && req.files.cv ? req.files.cv[0].path : null;
+      const{phoneNumber,address,qualification,teachingExperience,jobType,country,state,city}=req.body;
+      const result=await this.userRepository.updateMentorMetaData(id,cvPath, phoneNumber, address, qualification, teachingExperience, jobType, country, state, city); 
+      return ServiceResponse.success("User updated successfully!", user);
+    } catch (e) {
+      const errorMessage = `Error during mentor edit: ${e}`;
+      logger.error(errorMessage);
+      return ServiceResponse.failure("An error occurred while updating mentor details", null, StatusCodes.INTERNAL_SERVER_ERROR);
+    }
+  }
 }
 
 export const userService = new UserService();

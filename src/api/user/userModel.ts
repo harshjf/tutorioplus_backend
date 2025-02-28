@@ -125,3 +125,10 @@ export const MentorSignUpSchema = z.object({
   city: z.string(),
 });
 export type MentorSignUpSchema = z.infer<typeof MentorSignUpSchema>;
+
+export const getMentorFilter=z.object({
+  email:z.string(),
+  name:z.string(),
+  phone_number:z.string()
+})
+export type getMentorFilter = z.infer<typeof getMentorFilter>;
