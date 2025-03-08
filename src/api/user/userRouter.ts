@@ -136,4 +136,12 @@ userRegistry.registerPath({
   requestBody: createApiBody(MentorSignUpSchema),
   responses: createApiResponse(z.object({ message: z.string() }), "Success"),
 });
-userRouter.post("/editmentor", multipleFileUploadMiddleware,userController.editMentor);
+userRouter.post("/editmentor", verifyToken, multipleFileUploadMiddleware,userController.editMentor);
+
+userRegistry.registerPath({
+  method: "post",
+  path: "/users/approvetutor",
+  tags: ["User"],
+  responses: createApiResponse(z.object({ message: z.string() }), "Success"),
+});
+userRouter.post("/approvetutor",verifyToken ,userController.approveTutor);

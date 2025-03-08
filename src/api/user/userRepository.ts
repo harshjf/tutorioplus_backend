@@ -228,13 +228,41 @@ export class UserRepository {
     const result = await query(sql, [name, email, id]);
     return result[0]; 
   }
-  async updateMentorMetaData(id:number, cv:string, phoneNumber:string, address:string, qualification:string, teachingExperience:string, jobType:string, country:string, state:string, city:string){
-    const sql = `UPDATE mentor_metadata 
-                SET cv = $2, phone_number=$3, address=$4,
-                qualification=$5, teaching_experience = $6,
-                job_type=$7, country=$8, state=$9, city=$10
-                WHERE user_id = $1`;
-    const result = await query(sql, [id,cv,phoneNumber,address,qualification,teachingExperience,jobType,country,state,city]);
+  async updateMentorMetaData(
+    id: number,
+    cv: string | null,
+    phoneNumber: string,
+    address: string,
+    qualification: string,
+    teachingExperience: string,
+    jobType: string,
+    country: string,
+    state: string,
+    city: string
+  ) {
+    let sql = `UPDATE mentor_metadata SET `;
+    const params: any[] = [];
+    
+    if (cv !== null && cv !== "") {
+      sql += `cv = $${params.length + 1}, `;
+      params.push(cv);
+    }
+  
+    sql += `phone_number = $${params.length + 1}, address = $${params.length + 2}, 
+            qualification = $${params.length + 3}, teaching_experience = $${params.length + 4}, 
+            job_type = $${params.length + 5}, country = $${params.length + 6}, 
+            state = $${params.length + 7}, city = $${params.length + 8} 
+            WHERE user_id = $${params.length + 9}`;
+  
+    params.push(phoneNumber, address, qualification, teachingExperience, jobType, country, state, city, id);
+  
+    const result = await query(sql, params);
+    return result[0];
+  }
+  async approveTutor(approve:boolean, id:number){
+    console.log("Approve id",approve,id);
+    const sql="UPDATE mentor_metadata SET approve=$1 WHERE user_id=$2 RETURNING *";
+    const result= await query(sql,[approve,id]);
     return result[0];
   }
 }

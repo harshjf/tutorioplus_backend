@@ -31,11 +31,11 @@ export class ServiceService {
 
           if (service.category === "Document Based") {            
             const docPath = request.file ? request.file.path : null;    
-            const{studentId,subjectId,serviceId,description,dueDate}=request.body;            
-            await this.serviceRepository.addDocumentBasedService(studentId,subjectId,serviceId,docPath,description,dueDate);
+            const{studentId,subject,serviceId,description,dueDate}=request.body;            
+            await this.serviceRepository.addDocumentBasedService(studentId,subject,serviceId,docPath,description,dueDate);
           } else if (service.category === "Session Based") {
-            const{studentId,serviceId,scheduledTime,duration,link}=request.body;            
-            await this.serviceRepository.addSessionBasedService(studentId,serviceId,scheduledTime,duration,link);
+            const{studentId,serviceId,scheduledTime,duration,link,payment_id}=request.body;            
+            await this.serviceRepository.addSessionBasedService(studentId,serviceId,scheduledTime,duration,link,payment_id);
           } else {
             return ServiceResponse.failure("Invalid service category", null, StatusCodes.BAD_REQUEST);
           }   

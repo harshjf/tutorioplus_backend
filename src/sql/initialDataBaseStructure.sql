@@ -22,22 +22,6 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE TABLE subjects (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL
-);
-
-INSERT INTO subjects (name) VALUES
-('Academic Writing'),('Accountancy'), ('Algorithm and Data Structure'), ('Analog Electronics'),
-('AutoCAD'), ('Basic Electronics'), ('BioChemistry'), ('Biology'), ('Biotechnology'), ('Business Management'),
-('C/C++'), ('C#'), ('Chemistry'), ('Civil Engineering'), ('Commerce'), ('Communication Skills'), ('Company Law'),
-('Computer Networking'), ('Computer Science'), ('Control Systems'), ('DBMS'), ('Digital Electronics'),
-('.net'), ('Economics'), ('Electrical Engineering'), ('Engineering Mechanics'), ('English'),
-('Environmental Science'), ('Financial Management'), ('Fluid Mechanics'), ('Geography'), ('History'), ('HTML'),
-('IELTS'), ('Income Tax'), ('JAVA'), ('Jquery and JavaScript'), ('Law'), ('Maths'), ('Mechanical'),
-('Microbiology'), ('PHP'), ('Physics'), ('Political Science'), ('Programming'), ('Psychology'),('Phython'), ('R'),
-('Science'), ('Sociology'),('Statistics'),('Strength of Materials'), ('Thermodynamics'),('Zoology');
-
 CREATE TABLE student_metadata (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,  
@@ -67,6 +51,7 @@ CREATE TABLE mentor_metadata (
     state TEXT, 
     city TEXT,  
     approve BOOLEAN DEFAULT FALSE,
+    active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -101,7 +86,6 @@ CREATE TABLE services (
 CREATE TABLE document_based_services (
     id SERIAL PRIMARY KEY,
     student_id INT NOT NULL,          
-	subject_id INT,
     mentor_id INT,           
     service_id INT NOT NULL,           
     doc_path TEXT NOT NULL,            
@@ -111,14 +95,12 @@ CREATE TABLE document_based_services (
     updated_at TIMESTAMP DEFAULT NOW(),
     FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE,
     -- FOREIGN KEY (mentor_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE,
-	FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE
+    FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE
 );
 
 CREATE TABLE session_based_services (
     id SERIAL PRIMARY KEY,
-    student_id INT NOT NULL,           
-    mentor_id INT, --NOT NULL,            
+    student_id INT NOT NULL,                     
     service_id INT NOT NULL,          
     schedule_time TIMESTAMP NOT NULL,  
     duration TEXT NOT NULL,             
@@ -179,6 +161,10 @@ ADD COLUMN active BOOLEAN DEFAULT TRUE;
 ALTER TABLE session_based_services
 ADD COLUMN active BOOLEAN DEFAULT TRUE;
 
+ALTER TABLE document_based_services 
+ADD COLUMN subject TEXT;
+
+
 
 /* for vivek */
 ALTER TABLE document_based_services
@@ -187,4 +173,9 @@ ALTER COLUMN subject_id DROP NOT NULL;
 ALTER TABLE users ADD CONSTRAINT unique_email UNIQUE (email);
 
 ALTER TABLE mentor_metadata DROP COLUMN active;
+
+ALTER TABLE mentor_metadata ADD COLUMN approve BOOLEAN DEFAULT FALSE;
+
+ALTER TABLE session_based_services 
+DROP COLUMN mentor_id;
 

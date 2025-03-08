@@ -260,6 +260,22 @@ export class UserService {
       return ServiceResponse.failure("An error occurred while updating mentor details", null, StatusCodes.INTERNAL_SERVER_ERROR);
     }
   }
+
+  async approveTutor(req:any) : Promise<ServiceResponse<null>>{
+    const {approve,id} = req.body;
+    try {
+      const result = await this.userRepository.approveTutor(approve,id);
+      const message = approve 
+      ? "Tutor has been approved successfully." 
+      : "Tutor has been rejected successfully.";
+
+      return ServiceResponse.success(message, null);
+    } catch (e) {
+      const errorMessage = `Error while updating tutor approval status: ${e}`;
+      logger.error(errorMessage);
+      return ServiceResponse.failure("An error occurred while updating tutor approval status", null, StatusCodes.INTERNAL_SERVER_ERROR);
+    }
+  }
 }
 
 export const userService = new UserService();

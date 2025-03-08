@@ -16,7 +16,7 @@ export class ServiceRepository {
     }
     async addDocumentBasedService(
         studentId: number,
-        subjectId: number | null, 
+        subject: string | null, 
         serviceId: number,
         docPath: string,
         description: string,
@@ -24,16 +24,15 @@ export class ServiceRepository {
     ): Promise<DocumentBasedService> {
     let sql: string;
     let values: any[];
-            
-    if (subjectId !== null && subjectId !== undefined) {
+    if (subject !== null && subject !== undefined) {
         sql = `
         INSERT INTO document_based_services(
-            student_id, subject_id, service_id, doc_path, description, due_date
+            student_id, subject, service_id, doc_path, description, due_date
         )
         VALUES($1, $2, $3, $4, $5, $6) 
         RETURNING *;
         `;
-        values = [studentId, subjectId, serviceId, docPath, description, dueDate];
+        values = [studentId, subject, serviceId, docPath, description, dueDate];
     } else {
         sql = `
         INSERT INTO document_based_services(
@@ -47,9 +46,9 @@ export class ServiceRepository {
     const result = await query(sql, values);
     return result;
     }      
-    async addSessionBasedService(studentId:number,serviceId:number,scheduledTime:string,duration:string,link:string): Promise<SessionBasedService>{
-        const sql="INSERT INTO session_based_services(student_id,service_id,schedule_time,duration,link) VALUES($1,$2,$3,$4,$5) returning *";
-        const result=await query(sql,[studentId,serviceId,scheduledTime,duration,link]);
+    async addSessionBasedService(studentId:number,serviceId:number,scheduledTime:string,duration:string,link:string, payment_id:string): Promise<SessionBasedService>{
+        const sql="INSERT INTO session_based_services(student_id,service_id,schedule_time,duration,link,payment_id) VALUES($1,$2,$3,$4,$5,$6) returning *";
+        const result=await query(sql,[studentId,serviceId,scheduledTime,duration,link,payment_id]);
         return result;
     }
     async getAssignmentList(filter:GetAssignmentListFilter, student_id:string){
@@ -58,7 +57,7 @@ export class ServiceRepository {
             dbs.id,
             dbs.student_id,
             u.name AS student_name,  
-            dbs.subject_id,
+            dbs.subject,
             dbs.mentor_id,
             dbs.service_id,
             s.service_type AS service_name,
@@ -104,7 +103,7 @@ export class ServiceRepository {
             values.push(student_id);
         }
         if (conditions.length > 0) {
-            sql += ` WHERE ` + conditions.join(' AND ');
+            sql += ` AND ` + conditions.join(' AND ');
         }
 
         const result = await query(sql, values);
@@ -146,7 +145,6 @@ export class ServiceRepository {
             sbs.id,
             sbs.student_id,
             u.name AS student_name,  
-            sbs.mentor_id,
             sbs.service_id,
             sbs.schedule_time,
             sbs.duration,
@@ -188,7 +186,7 @@ export class ServiceRepository {
             values.push(student_id);
         }
         if (conditions.length > 0) {
-            sql += ` WHERE ` + conditions.join(' AND ');
+            sql += ` AND ` + conditions.join(' AND ');
         }
 
         const result = await query(sql, values);

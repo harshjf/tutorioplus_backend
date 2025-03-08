@@ -69,7 +69,8 @@
     "entry": [
       "src",
       "!src/**/__tests__/**",
-      "!src/**/*.test.*"
+      "!src/**/*.test.*",
+      "!src/sql/**/*.sql"
     ],
     "splitting": false,
     "sourcemap": true,

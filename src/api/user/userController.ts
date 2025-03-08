@@ -81,6 +81,10 @@ class UserController {
     const serviceResponse = await userService.editMentor(req);
     return handleServiceResponse(serviceResponse,res);
   };
+  public approveTutor: RequestHandler = async(req:Request, res: Response) =>{
+    const serviceResponse = await userService.approveTutor(req);
+    return handleServiceResponse(serviceResponse,res);
+  }
 }
 
 

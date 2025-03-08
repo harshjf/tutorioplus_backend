@@ -28,7 +28,7 @@ export type DocumentBasedService = z.infer<typeof DocumentBasedServiceSchema>;
 export const DocumentBasedServiceSchema=z.object({
     id:z.number(),
     student_id:z.number() ,           
-	subject_id:z.number() ,
+	  subject:z.string() ,
     mentor_id:z.number() ,            
     service_id :z.number(),           
     doc_path: z.string(),            
