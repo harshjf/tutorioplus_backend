@@ -7,15 +7,16 @@
       "@/*": ["src/*"]
     },
     "moduleResolution": "Node",
-    "outDir": "dist",
-    "rootDir": "src",
+    "outDir": "./dist",
+    "rootDir": "./src",
     "importsNotUsedAsValues": "remove",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "preserveSymlinks": false
   },
   "include": ["src/**/*", "custom.d.ts"],
   "exclude": ["node_modules", "dist"]
