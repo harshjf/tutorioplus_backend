@@ -1,5 +1,5 @@
 export const dbConfig = {
-  user: "postgres",
+  user: "tutor",
   host: "localhost",
   database: "tutorioplus",
   password: "tutor@123",
