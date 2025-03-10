@@ -2,7 +2,7 @@ import cors from "cors";
 import express, { type Express } from "express";
 import helmet from "helmet";
 import { pino } from "pino";
-import * as crypto from 'crypto';
+import * as crypto from "crypto";
 import { openAPIRouter } from "@/api-docs/openAPIRouter";
 import { healthCheckRouter } from "@/api/healthCheck/healthCheckRouter";
 import { userRouter } from "@/api/user/userRouter";
@@ -10,7 +10,7 @@ import errorHandler from "@/common/middleware/errorHandler";
 import rateLimiter from "@/common/middleware/rateLimiter";
 import requestLogger from "@/common/middleware/requestLogger";
 import { env } from "@/common/utils/envConfig";
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 import { serviceRouter } from "./api/service/serviceRouter";
 import { faqRouter } from "./api/faq/faqRouter";
 import { grievanceRouter } from "./api/grievance/grievanceRouter";
@@ -23,10 +23,13 @@ dotenv.config();
 const secretKey = crypto.randomBytes(32).toString("hex");
 
 const corsOptions = {
-    origin: ["http://localhost:3000", "http://localhost:3001" ]/* env.CORS_ORIGIN */, 
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], 
-    allowedHeaders: ['Content-Type', 'Authorization'], 
-    credentials: true,
+  origin: [
+    "http://localhost:3000",
+    "http://localhost:3001",
+  ] /* env.CORS_ORIGIN */,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
 };
 
 // Set the application to trust the reverse proxy
@@ -43,14 +46,14 @@ app.use(helmet());
 app.use(requestLogger);
 
 // Routes
-app.use("/health-check", healthCheckRouter);
-app.use("/users", userRouter);
-app.use("/services", serviceRouter);
-app.use("/faqs", faqRouter);
-app.use("/grievances", grievanceRouter);
-app.use("/newsandannouncements", newsAndAnnouncementRouter);
+app.use("/api/health-check", healthCheckRouter);
+app.use("/api/users", userRouter);
+app.use("/api/services", serviceRouter);
+app.use("/api/faqs", faqRouter);
+app.use("/api/grievances", grievanceRouter);
+app.use("/api/newsandannouncements", newsAndAnnouncementRouter);
 // Swagger UI
-app.use(openAPIRouter);
+app.use("/api/docs", openAPIRouter);
 
 // Error handlers
 app.use(errorHandler());
