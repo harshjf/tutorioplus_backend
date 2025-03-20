@@ -8,6 +8,11 @@ class ServiceController{
       const serviceResponse = await serviceService.getAllServices();
       return handleServiceResponse(serviceResponse, res);
     };
+
+    public getServicesForNavbar: RequestHandler = async (_req: Request, res: Response) => {
+      const serviceResponse = await serviceService.getServicesForNavbar();
+      return handleServiceResponse(serviceResponse, res);
+    };
     
     public addService: RequestHandler = async (req: Request, res: Response) => {
       const serviceResponse = await serviceService.addService(req);

@@ -84,7 +84,13 @@ class UserController {
   public approveTutor: RequestHandler = async(req:Request, res: Response) =>{
     const serviceResponse = await userService.approveTutor(req);
     return handleServiceResponse(serviceResponse,res);
-  }
+  };
+  public changePassword: RequestHandler = async (req: Request, res: Response) => {
+    const { id, current_password, new_password } = req.body;
+    const serviceResponse = await userService.changePassword(id, current_password, new_password);
+    return handleServiceResponse(serviceResponse, res);
+  };
+  
 }
 
 

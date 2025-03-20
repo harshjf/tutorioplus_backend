@@ -6,6 +6,7 @@ import {  AddServiceRequestSchema, ServiceSchema } from "@/api/service/serviceMo
 import { serviceController } from "./serviceController";
 import { optionalFileUpload } from "@/common/middleware/uploadMiddleware";
 import { verifyToken } from "@/common/middleware/jwtVerification";
+import { authorize } from "@/common/middleware/authorize";
 
 export const serviceRegistry = new OpenAPIRegistry();
 export const serviceRouter: Router = express.Router();
@@ -21,6 +22,15 @@ serviceRegistry.registerPath({
 
 serviceRouter.get("/",serviceController.getServices);
 
+serviceRegistry.registerPath({
+  method: "get",
+  path: "/services/getservicesfornavbar",
+  tags: ["Services"],
+  responses: createApiResponse(z.array(ServiceSchema), "Success"),
+});
+
+serviceRouter.get("/getservicesfornavbar",
+  verifyToken ,authorize(["Student"]),serviceController.getServicesForNavbar);
 
 serviceRegistry.registerPath({
     method: "post",
@@ -33,6 +43,7 @@ serviceRegistry.registerPath({
 serviceRouter.post(
   "/addService",
   verifyToken,
+  authorize(["Student"]),
   optionalFileUpload,
   serviceController.addService
 );
@@ -61,13 +72,14 @@ serviceRegistry.registerPath({
 
 serviceRouter.post(
 "/getAssignmentList",
-verifyToken,
+verifyToken ,authorize(["Admin","Student"]),
 serviceController.getAssignmentList
 );
 
 serviceRouter.post(
   "/getSessionsList",
   verifyToken,
+  authorize(["Admin","Student"]),
   serviceController.getSessionsList
   );
   
@@ -87,7 +99,7 @@ serviceRegistry.registerPath({
 
 serviceRouter.post(
   "/submitAnswer",
-  verifyToken,
+  verifyToken ,authorize(["Admin"]),
   optionalFileUpload,
   serviceController.submitAnswer
 );
@@ -116,6 +128,7 @@ serviceRegistry.registerPath({
 serviceRouter.post(
   "/deleteAssignment",
   verifyToken,
+  authorize(["Admin"]),
   serviceController.deleteAssignment
 );
 
@@ -129,6 +142,7 @@ serviceRegistry.registerPath({
 serviceRouter.post(
   "/deleteSession",
   verifyToken,
+  authorize(["Admin"]),
   serviceController.deleteSession
 );
 

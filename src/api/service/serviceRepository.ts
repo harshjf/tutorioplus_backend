@@ -5,10 +5,15 @@ import mime from "mime-types";
 
 export class ServiceRepository {
     async getAllServices(): Promise<Service[]> {
-      const sql = "SELECT * FROM services";
+      const sql = "SELECT *  FROM services";
       const result= await query(sql);
       return result;
     }
+    async getServicesForNavbar(): Promise<Service[]> {
+        const sql = "SELECT *, LOWER(REPLACE(service_type, ' ', '-')) AS navbar_url  FROM services WHERE show_in_navbar = TRUE  ORDER BY position;";
+        const result= await query(sql);
+        return result;
+      }
     async getServiceById(serviceId: number): Promise<Service>{
         const sql="SELECT * FROM services where id=$1";
         const result=await query(sql,[serviceId]);

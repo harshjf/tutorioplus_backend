@@ -8,7 +8,7 @@ import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcrypt';
 import sendResetPasswordEmail from "@/common/utils/emailService";
-
+import notificationQueue from "../../notifications/queue.js";
 
 export class UserService {
   private userRepository: UserRepository;
@@ -45,7 +45,14 @@ export class UserService {
         if (!isPasswordValid) {
           return ServiceResponse.failure("Invalid password!", null, StatusCodes.UNAUTHORIZED);
         }else{
-          const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET as string, {
+          const type = "RESET_PASSWORD";
+          const userId = "35";
+          const params = {name: "Janvi"}
+
+          // Add job to the queue (asynchronous processing)
+          await notificationQueue.add("sendNotification", { type, userId, params });
+          
+          const token = jwt.sign({ id: user.id, email: user.email, role_id:user.role_id, role_name:user.role }, process.env.JWT_SECRET as string, {
             expiresIn: "24h",
           });
           return ServiceResponse.success("Sign-in successful", { token, user: { 
@@ -276,6 +283,35 @@ export class UserService {
       return ServiceResponse.failure("An error occurred while updating tutor approval status", null, StatusCodes.INTERNAL_SERVER_ERROR);
     }
   }
+
+  async changePassword(id: number, current_password: string, new_password: string): Promise<ServiceResponse<null>> {
+    try {
+      console.log("ID",id);
+      console.log("current password",current_password);
+      console.log("New password",new_password);
+      
+      const user = await this.userRepository.findByIdAsync(id);
+
+      console.log("USER",user);
+  
+      if (!user) {
+        return ServiceResponse.failure("User not found!", null, StatusCodes.NOT_FOUND);
+      }
+      const isPasswordValid = await bcrypt.compare(current_password, user.password);
+      if (!isPasswordValid) {
+        return ServiceResponse.failure("Incorrect current password!", null, StatusCodes.UNAUTHORIZED);
+      }
+      const hashedPassword = await bcrypt.hash(new_password, 10);
+      await this.userRepository.updatePassword(id, hashedPassword);
+  
+      return ServiceResponse.success("Password updated successfully!", null);
+    } catch (e) {
+      const errorMessage = `Error during password change: ${e}`;
+      logger.error(errorMessage);
+      return ServiceResponse.failure("An error occurred while changing password", null, StatusCodes.INTERNAL_SERVER_ERROR);
+    }
+  }
+  
 }
 
 export const userService = new UserService();

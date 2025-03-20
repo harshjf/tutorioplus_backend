@@ -164,7 +164,32 @@ ADD COLUMN active BOOLEAN DEFAULT TRUE;
 ALTER TABLE document_based_services 
 ADD COLUMN subject TEXT;
 
+INSERT INTO services (service_type, category) VALUES
+('Assignment', 'Document Based'),
+('Homework', 'Document Based'),
+('Lab Report', 'Document Based'),
+('Project Report', 'Document Based'),
+('Counselling', 'Session Based'),
+('Live Session', 'Session Based');
 
+ALTER TABLE services
+ADD COLUMN price_per_hour INTEGER,
+ADD COLUMN show_in_navbar BOOLEAN DEFAULT TRUE;
+
+INSERT INTO services (service_type, category,price_per_hour,show_in_navbar) VALUES
+('Online Class Request', 'Session Based',28,false);
+
+UPDATE services SET price_per_hour = 54 WHERE service_type='Live Session';
+
+ALTER TABLE services
+ADD COLUMN position INTEGER;
+
+UPDATE services SET position = 1 WHERE service_type='Live Session';
+UPDATE services SET position = 2 WHERE service_type='Assignment';
+UPDATE services SET position = 3 WHERE service_type='Lab Report';
+UPDATE services SET position = 4 WHERE service_type='Project Report';
+UPDATE services SET position = 5 WHERE service_type='Homework';
+UPDATE services SET position = 6 WHERE service_type='Counselling';
 
 /* for vivek */
 ALTER TABLE document_based_services

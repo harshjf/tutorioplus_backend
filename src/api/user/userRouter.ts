@@ -2,18 +2,16 @@ import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
 import express, { type Router } from "express";
 import { z } from "zod";
 import { createApiBody, createApiResponse } from "@/api-docs/openAPIResponseBuilders";
-import { getStudentFilter, UserConfirmResetPasswordSchema, UserResetPasswordSchema, UserSchema, UserSignInSchema,UserSignUpSchema, MentorSignUpSchema, StudentSchema } from "@/api/user/userModel";
+import {  UserConfirmResetPasswordSchema, UserResetPasswordSchema, UserSchema, UserSignInSchema,UserSignUpSchema, MentorSignUpSchema, StudentSchema } from "@/api/user/userModel";
 import { userController } from "./userController";
 import { verifyToken } from "@/common/middleware/jwtVerification";
-import { optionalFileUpload } from "@/common/middleware/uploadMiddleware";
 import { multipleFileUploadMiddleware } from "@/common/middleware/multipleFileUploadMiddleware";
+import { authorize } from "@/common/middleware/authorize";
 
 export const userRegistry = new OpenAPIRegistry();
 export const userRouter: Router = express.Router();
 
 userRegistry.register("User", UserSchema);
-
-
 
 userRegistry.registerPath({
   method: "get",
@@ -23,16 +21,6 @@ userRegistry.registerPath({
 });
 
 userRouter.get("/", userController.getUsers);
-
-/* userRegistry.registerPath({
-  method: "get",
-  path: "/users/{id}",
-  tags: ["User"],
-  request: { params: GetUserSchema.shape.params },
-  responses: createApiResponse(UserSchema, "Success"),
-}); */
-
-/* userRouter.get("/:id", validateRequest(GetUserSchema), userController.getUser); */
 
 userRegistry.registerPath({
   method: "post",
@@ -60,7 +48,7 @@ userRegistry.registerPath({
   requestBody: createApiBody(MentorSignUpSchema),
   responses: createApiResponse(z.object({ message: z.string() }), "Success"),
 });
-userRouter.post("/addmentor", multipleFileUploadMiddleware,userController.addMentor);
+userRouter.post("/addmentor",verifyToken, authorize(["Admin","Student"]) , multipleFileUploadMiddleware,userController.addMentor);
 
 userRegistry.registerPath({
   method: "post",
@@ -94,7 +82,7 @@ userRegistry.registerPath({
   tags: ["User"],
   responses: createApiResponse(z.object({ token: z.string() }), "Success"),
 });
-userRouter.post("/getstudents",  verifyToken ,userController.getStudents);
+userRouter.post("/getstudents", verifyToken, authorize(["Admin"]) ,userController.getStudents);
 
 userRegistry.registerPath({
   method: "post",
@@ -102,7 +90,7 @@ userRegistry.registerPath({
   tags: ["User"],
   responses: createApiResponse(z.object({ message: z.string() }), "Success"),
 });
-userRouter.post("/editstudent",verifyToken, userController.editStudent);
+userRouter.post("/editstudent",verifyToken, authorize(["Admin","Student"]), userController.editStudent);
 
 userRegistry.registerPath({
   method: "post",
@@ -110,7 +98,7 @@ userRegistry.registerPath({
   tags: ["User"],
   responses: createApiResponse(z.object({ message: z.string() }), "Success"),
 });
-userRouter.post("/deleteuser",verifyToken, userController.deleteUser);
+userRouter.post("/deleteuser",verifyToken,authorize(["Admin"]), userController.deleteUser);
 
 userRegistry.registerPath({
   method: "get",
@@ -119,7 +107,7 @@ userRegistry.registerPath({
   responses: createApiResponse(StudentSchema, "Success"),
 });
 
-userRouter.get("/getstudent/:id",verifyToken, userController.getStudent);
+userRouter.get("/getstudent/:id",verifyToken,authorize(["Student"]), userController.getStudent);
 
 userRegistry.registerPath({
   method: "post",
@@ -127,7 +115,7 @@ userRegistry.registerPath({
   tags: ["User"],
   responses: createApiResponse(z.object({ token: z.string() }), "Success"),
 });
-userRouter.post("/getmentors",  verifyToken ,userController.getMentors);
+userRouter.post("/getmentors",  verifyToken ,authorize(["Admin"]),userController.getMentors);
 
 userRegistry.registerPath({
   method: "post",
@@ -136,7 +124,7 @@ userRegistry.registerPath({
   requestBody: createApiBody(MentorSignUpSchema),
   responses: createApiResponse(z.object({ message: z.string() }), "Success"),
 });
-userRouter.post("/editmentor", verifyToken, multipleFileUploadMiddleware,userController.editMentor);
+userRouter.post("/editmentor", verifyToken,authorize(["Admin"]), multipleFileUploadMiddleware,userController.editMentor);
 
 userRegistry.registerPath({
   method: "post",
@@ -144,4 +132,13 @@ userRegistry.registerPath({
   tags: ["User"],
   responses: createApiResponse(z.object({ message: z.string() }), "Success"),
 });
-userRouter.post("/approvetutor",verifyToken ,userController.approveTutor);
+userRouter.post("/approvetutor",verifyToken,authorize(["Admin"]),userController.approveTutor);
+
+userRegistry.registerPath({
+  method: "post",
+  path: "/users/changepassword",
+  tags: ["User"],
+  responses: createApiResponse(z.object({ message: z.string() }), "Success"),
+});
+userRouter.post("/changepassword",verifyToken ,userController.changePassword);
+

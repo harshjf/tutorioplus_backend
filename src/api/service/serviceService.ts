@@ -21,6 +21,16 @@ export class ServiceService {
             return ServiceResponse.failure("An error occurred during fetching services", null, StatusCodes.INTERNAL_SERVER_ERROR);
         }
       }
+      async getServicesForNavbar(): Promise<ServiceResponse<Service[] | null>> {
+        try {
+          const services = await this.serviceRepository.getServicesForNavbar();
+          return ServiceResponse.success<Service[]>("Services found", services);
+        } catch (e) {
+            const errorMessage = `Error occured during fetching services: ${e}`;
+            logger.error(errorMessage);
+            return ServiceResponse.failure("An error occurred during fetching services", null, StatusCodes.INTERNAL_SERVER_ERROR);
+        }
+      }
     
     async addService(request: any) {
        try {        

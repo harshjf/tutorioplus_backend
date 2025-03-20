@@ -143,7 +143,7 @@ export class UserRepository {
   async findByIdAsync(userId: number) {
     const sql = `
       SELECT 
-        u.id, u.name, u.email, u.role_id, u.created_at, u.updated_at,
+        u.id, u.name,u.password, u.email, u.role_id, u.created_at, u.updated_at,
         sm.country, sm.state, sm.city, sm.pincode, sm.address, sm.phone_number, 
         sm.purpose_of_sign_in, sm.first_payment_date
       FROM users u
@@ -264,5 +264,10 @@ export class UserRepository {
     const sql="UPDATE mentor_metadata SET approve=$1 WHERE user_id=$2 RETURNING *";
     const result= await query(sql,[approve,id]);
     return result[0];
+  }
+  async updatePassword(id: number, newPassword: string) {
+    console.log("id",id,newPassword);
+    const sql = `UPDATE users SET password = $1, updated_at = NOW() WHERE id = $2`;
+    await query(sql, [newPassword, id]);
   }
 }
