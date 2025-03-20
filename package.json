@@ -9,8 +9,8 @@
   "private": true,
   "scripts": {
     "dev": "tsx watch --clear-screen=false src/index.ts | pino-pretty",
-    "build": "tsup",
-    "start": "node dist/index.js",
+    "build": "npx tsc && npx tsc-alias",
+    "start": "node dist/server.js",
     "clean": "rimraf dist coverage",
     "lint": "biome check src/",
     "lint:fix": "biome check src/ --fix",
@@ -37,6 +37,7 @@
     "pino": "^9.4.0",
     "pino-http": "^10.0.0",
     "swagger-ui-express": "^5.0.0",
+    "tsconfig-paths": "^4.2.0",
     "uuid": "^11.0.4",
     "zod": "^3.22.4"
   },

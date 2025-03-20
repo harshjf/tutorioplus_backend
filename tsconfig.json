@@ -2,19 +2,22 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "CommonJS",
-    "baseUrl": ".",
+    "baseUrl": "./",
     "paths": {
       "@/*": ["src/*"]
     },
     "moduleResolution": "Node",
-    "outDir": "dist",
+    "outDir": "./dist",
+    "rootDir": "./src",
     "importsNotUsedAsValues": "remove",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["vitest/globals"]
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "preserveSymlinks": false
   },
-  "include": ["src/**/*",  "custom.d.ts"],
-  "exclude": ["node_modules"]
+  "include": ["src/**/*", "custom.d.ts"],
+  "exclude": ["node_modules", "dist"]
 }
