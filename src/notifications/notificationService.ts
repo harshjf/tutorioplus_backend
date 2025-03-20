@@ -1,8 +1,26 @@
 import { query } from "@/common/models/database";
-const nodemailer = require("nodemailer");
-require("dotenv").config();
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
 
-const sendNotification = async (type, userId, params) => {
+dotenv.config();
+
+// Define Notification Params Type
+interface NotificationParams {
+  [key: string]: string;
+}
+
+// Define Notification Job Type
+interface NotificationJob {
+  type: string;
+  userId: number;
+  params: NotificationParams;
+}
+
+const sendNotification = async (
+  type: string,
+  userId: number,
+  params: NotificationParams
+): Promise<void> => {
   try {
     // Fetch notification details for all channels linked to this notification type
     const notificationQuery = `
@@ -15,19 +33,17 @@ const sendNotification = async (type, userId, params) => {
       `;
 
     const result = await query(notificationQuery, [type]);
-    if (result.rows.length === 0)
-      throw new Error("Notification type not found");
+    if (result.length === 0) throw new Error("Notification type not found");
 
     // Loop through each channel assigned to this notification type
-    for (const row of result.rows) {
+    for (const row of result) {
       const { id, subject, content, wildcards, channel } = row;
 
       // Replace wildcards in the message
       let finalMessage = content;
-      if (wildcards) {
-        const wildcardsArray = JSON.parse(wildcards);
-        wildcardsArray.forEach((placeholder) => {
-          const key = placeholder.replace(/{{|}}/g, "");
+      if (wildcards && Array.isArray(wildcards)) {
+        wildcards.forEach((placeholder: string) => {
+          const key = placeholder;
           finalMessage = finalMessage.replace(placeholder, params[key] || "");
         });
       }
@@ -38,22 +54,25 @@ const sendNotification = async (type, userId, params) => {
       } else if (channel === "NOTIFICATION") {
         await storeSystemNotification(userId, id, subject, finalMessage);
       }
-      // Future scope: WhatsApp Notification logic
     }
   } catch (error) {
     console.error("Error sending notification:", error);
   }
 };
 
-const sendEmailNotification = async (userId, subject, message) => {
+const sendEmailNotification = async (
+  userId: number,
+  subject: string,
+  message: string
+): Promise<void> => {
   try {
     // Fetch user email
     const userResult = await query("SELECT email FROM users WHERE id = $1", [
       userId,
     ]);
-    if (userResult.rows.length === 0) throw new Error("User not found");
+    if (userResult.length === 0) throw new Error("User not found");
 
-    const userEmail = userResult.rows[0].email;
+    const userEmail = userResult[0].email;
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -77,11 +96,11 @@ const sendEmailNotification = async (userId, subject, message) => {
 };
 
 const storeSystemNotification = async (
-  userId,
-  notificationId,
-  title,
-  message
-) => {
+  userId: number,
+  notificationId: number,
+  title: string,
+  message: string
+): Promise<void> => {
   try {
     await query(
       "INSERT INTO user_notifications (user_id, notification_id, title, message) VALUES ($1, $2, $3, $4)",
@@ -93,4 +112,4 @@ const storeSystemNotification = async (
   }
 };
 
-module.exports = { sendNotification };
+export { sendNotification };
