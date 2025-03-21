@@ -33,6 +33,16 @@ serviceRouter.get("/getservicesfornavbar",
   verifyToken ,authorize(["Student"]),serviceController.getServicesForNavbar);
 
 serviceRegistry.registerPath({
+    method: "get",
+    path: "/services/details/:id",
+    tags: ["Services"],
+    responses: createApiResponse(z.array(ServiceSchema), "Success"),
+});
+  
+serviceRouter.get("/details/:id",
+    verifyToken ,authorize(["Student"]),serviceController.getServiceDetails);
+
+serviceRegistry.registerPath({
     method: "post",
     path: "/services/addService",
     tags: ["Services"],
