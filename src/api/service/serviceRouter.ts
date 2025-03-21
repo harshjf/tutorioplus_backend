@@ -41,6 +41,15 @@ serviceRouter.get(
 );
 
 serviceRegistry.registerPath({
+  method: "get",
+  path: "/services/details/:id",
+  tags: ["Services"],
+  responses: createApiResponse(z.array(ServiceSchema), "Success"),
+});
+
+serviceRouter.get("/details/:id", serviceController.getServiceDetails);
+
+serviceRegistry.registerPath({
   method: "post",
   path: "/services/addService",
   tags: ["Services"],

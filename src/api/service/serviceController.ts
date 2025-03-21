@@ -41,14 +41,28 @@ class ServiceController{
       const serviceResponse = await serviceService.submitAnswer(req);
       return handleServiceResponse(serviceResponse, res);
     };
+
     public deleteAssignment: RequestHandler = async (req: Request, res: Response) => {
       const serviceResponse = await serviceService.deleteAssignment(req);
       return handleServiceResponse(serviceResponse, res);
     };
+
     public deleteSession: RequestHandler = async (req: Request, res: Response) => {
       const serviceResponse = await serviceService.deleteSession(req);
       return handleServiceResponse(serviceResponse, res);
     };
+
+    public getServiceDetails: RequestHandler = async (req: Request, res: Response) => {
+      const serviceId = parseInt(req.params.id);
+      console.log("Service details for service",serviceId);
+      if (isNaN(serviceId)) {
+        return res.status(400).json({ message: "Invalid service ID" });
+      }
+    
+      const serviceResponse = await serviceService.getServiceDetails(serviceId);
+      return handleServiceResponse(serviceResponse, res);
+    };
+    
     
 }
 

@@ -11,6 +11,7 @@ export class ServiceService {
     constructor(repository: ServiceRepository = new ServiceRepository()) {
       this.serviceRepository = repository;
     }
+
     async getAllServices(): Promise<ServiceResponse<Service[] | null>> {
         try {
           const services = await this.serviceRepository.getAllServices();
@@ -20,8 +21,9 @@ export class ServiceService {
             logger.error(errorMessage);
             return ServiceResponse.failure("An error occurred during fetching services", null, StatusCodes.INTERNAL_SERVER_ERROR);
         }
-      }
-      async getServicesForNavbar(): Promise<ServiceResponse<Service[] | null>> {
+    }
+
+    async getServicesForNavbar(): Promise<ServiceResponse<Service[] | null>> {
         try {
           const services = await this.serviceRepository.getServicesForNavbar();
           return ServiceResponse.success<Service[]>("Services found", services);
@@ -30,7 +32,7 @@ export class ServiceService {
             logger.error(errorMessage);
             return ServiceResponse.failure("An error occurred during fetching services", null, StatusCodes.INTERNAL_SERVER_ERROR);
         }
-      }
+    }
     
     async addService(request: any) {
        try {        
@@ -143,6 +145,7 @@ export class ServiceService {
         return ServiceResponse.failure("An error occurred while deleting assignment.", null, StatusCodes.INTERNAL_SERVER_ERROR);
       }
     }
+
     async deleteSession(req:any) {
       const { id} = req.body;
       try {
@@ -165,6 +168,56 @@ export class ServiceService {
         return ServiceResponse.failure("An error occurred while deleting assignment.", null, StatusCodes.INTERNAL_SERVER_ERROR);
       }
     }
+
+    async getServiceDetails(serviceId: number): Promise<ServiceResponse<any>> {
+      try {
+        const [
+          metadata,
+          details,
+          steps,
+          guarantees,
+          bonuses,
+          universitySection,
+          universities,
+          assignmentHelp,
+        ] = await Promise.all([
+          this.serviceRepository.getServiceMetadata(serviceId),
+          this.serviceRepository.getServiceDetails(serviceId),
+          this.serviceRepository.getServiceSteps(serviceId),
+          this.serviceRepository.getGuaranteeSections(serviceId),
+          this.serviceRepository.getBonuses(serviceId),
+          this.serviceRepository.getUniversitySection(serviceId),
+          this.serviceRepository.getUniversities(serviceId),
+          this.serviceRepository.getAssignmentHelpContent(serviceId),
+        ]);
+    
+        const result = {
+          metadata,
+          details,
+          steps,
+          guaranteeSections: guarantees.map((g:any)  => ({
+            ...g,
+            icon: `<${g.icon_name} />`
+          })),
+          bonuses: bonuses.map((b:any) => ({
+            ...b,
+            icon: `<${b.icon_name} className="custom-icon" />`
+          })),
+          universitySections: {
+            ...universitySection,
+            universities
+          },
+          assignmentHelpContent: assignmentHelp
+        };
+    
+        return ServiceResponse.success("Service details fetched successfully", result);
+      } catch (e) {
+        const errorMessage = `Error fetching service details: ${e}`;
+        logger.error(errorMessage);
+        return ServiceResponse.failure("An error occurred", null, StatusCodes.INTERNAL_SERVER_ERROR);
+      }
+    }
+    
 }
 
     export const serviceService = new ServiceService();

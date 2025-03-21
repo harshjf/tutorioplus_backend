@@ -13,7 +13,7 @@ export class ServiceRepository {
         const sql = "SELECT *, LOWER(REPLACE(service_type, ' ', '-')) AS navbar_url  FROM services WHERE show_in_navbar = TRUE  ORDER BY position;";
         const result= await query(sql);
         return result;
-      }
+    }
     async getServiceById(serviceId: number): Promise<Service>{
         const sql="SELECT * FROM services where id=$1";
         const result=await query(sql,[serviceId]);
@@ -249,5 +249,43 @@ export class ServiceRepository {
         const result = await query(sql, [id]);
         return result[0];
     }
-      
+    async getServiceMetadata(serviceId: number) {
+      const sql = `SELECT * FROM service_metadata WHERE service_id = $1`;
+      const result = await query(sql, [serviceId]);
+      return result[0] || null;
+    }      
+    async getServiceDetails(serviceId: number) {
+        const sql = `SELECT * FROM service_details WHERE service_id = $1`;
+        const result = await query(sql, [serviceId]);
+        return result[0] || null;
+    }     
+    async getServiceSteps(serviceId: number) {
+        const sql = `SELECT * FROM service_steps WHERE service_id = $1`;
+        const result = await query(sql, [serviceId]);
+        return result[0] || null;
+    }
+    async getGuaranteeSections(serviceId: number) {
+        const sql = `SELECT * FROM guarantee_sections WHERE service_id = $1`;
+        return await query(sql, [serviceId]);
+    }      
+    async getBonuses(serviceId: number) {
+        const sql = `SELECT * FROM bonuses WHERE service_id = $1`;
+        return await query(sql, [serviceId]);
+    }      
+    async getUniversitySection(serviceId: number) {
+        const sql = `SELECT * FROM university_sections WHERE service_id = $1`;
+        const result = await query(sql, [serviceId]);
+        return result[0] || null;
+    }      
+    async getUniversities(serviceId: number) {
+        const sql = `SELECT u.* FROM universities u
+                     INNER JOIN university_sections us ON u.university_section_id = us.id
+                     WHERE us.service_id = $1`;
+        return await query(sql, [serviceId]);
+    }     
+    async getAssignmentHelpContent(serviceId: number) {
+        const sql = `SELECT * FROM assignment_help_content WHERE service_id = $1`;
+        const result = await query(sql, [serviceId]);
+        return result[0] || null;
+    }    
 }
