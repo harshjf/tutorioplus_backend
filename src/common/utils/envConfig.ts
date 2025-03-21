@@ -10,7 +10,7 @@ export const env = cleanEnv(process.env, {
   }),
   HOST: host({ devDefault: testOnly("localhost") }),
   PORT: port({ devDefault: testOnly(3000) }),
-  CORS_ORIGIN: str({ default: "http://147.93.111.144:3000" }),
+  CORS_ORIGIN: str({ default: "https://tutorioplus.com" }),
   COMMON_RATE_LIMIT_MAX_REQUESTS: num({ devDefault: testOnly(1000) }),
   COMMON_RATE_LIMIT_WINDOW_MS: num({ devDefault: testOnly(1000) }),
 });
