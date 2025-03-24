@@ -67,17 +67,16 @@ serviceRouter.post(
 
 serviceRegistry.registerPath({
   method: "post",
-  path: "/services/addService",
+  path: "/services/adhocServiceRequest",
   tags: ["Services"],
   requestBody: createApiBody(AddServiceRequestSchema),
   responses: createApiResponse(z.string(), "Success"),
 });
 
 serviceRouter.post(
-  "/addService",
-  verifyToken,
+  "/adhocServiceRequest",
   optionalFileUpload,
-  serviceController.addService
+  serviceController.adhocServiceRequest
 );
 
 serviceRegistry.registerPath({
