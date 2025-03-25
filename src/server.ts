@@ -26,8 +26,11 @@ const corsOptions = {
   origin: [
     "http://localhost:3000",
     "http://localhost:3001",
+    "http://147.93.111.144",
     "https://tutorioplus.com",
+    "https://tutorioplus.com/",
     "https://admin.tutorioplus.com",
+    "https://admin.tutorioplus.com/",
   ] /* env.CORS_ORIGIN */,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
