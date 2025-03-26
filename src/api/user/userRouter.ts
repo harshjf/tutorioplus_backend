@@ -142,3 +142,101 @@ userRegistry.registerPath({
 });
 userRouter.post("/changepassword",verifyToken ,userController.changePassword);
 
+userRegistry.registerPath({
+  method: "get",
+  path: "/users/stats",
+  tags: ["User"],
+  responses: createApiResponse(
+    z.object({
+      totalStudents: z.number(),
+      assignmentsAnswered: z.number(),
+      totalAssignments: z.number(),
+      classesRequested: z.number(),
+    }),
+    "Success"
+  ),
+});
+userRouter.get("/stats", verifyToken,authorize(["Admin"]), userController.getUserStats);
+
+userRegistry.registerPath({
+  method: "get",
+  path: "/users/assignment-activity",
+  tags: ["User"],
+  parameters: [
+    {
+      name: "range",
+      in: "query",
+      required: true,
+      schema: {
+        type: "string",
+        enum: ["week", "month", "year"]
+      }
+    }
+  ],
+  responses: createApiResponse(
+    z.object({
+      labels: z.array(z.string()),
+      counts: z.array(z.number())
+    }),
+    "Success"
+  ),
+});
+userRouter.get(
+  "/assignment-activity",
+  verifyToken,authorize(["Admin"]),
+  userController.getAssignmentActivity
+);
+
+userRegistry.registerPath({
+  method: "get",
+  path: "/users/notifications",
+  tags: ["User"],
+  parameters: [
+    {
+      name: "userId",
+      in: "query",
+      required: true,
+      schema: { type: "integer" }
+    },
+    {
+      name: "offset",
+      in: "query",
+      required: false,
+      schema: { type: "integer", default: 0 }
+    },
+    {
+      name: "limit",
+      in: "query",
+      required: false,
+      schema: { type: "integer", default: 10 }
+    }
+  ],
+  responses: createApiResponse(
+    z.object({
+      total: z.number(),
+      notifications: z.array(
+        z.object({
+          id: z.number(),
+          user_id: z.number(),
+          title: z.string(),
+          message: z.string(),
+          is_read: z.boolean(),
+          created_at: z.string()
+        })
+      )
+    }),
+    "Success"
+  )
+});
+userRouter.get(
+  "/notifications",
+  verifyToken,
+  authorize(["Admin"]),
+  userController.getNotifications
+);
+
+
+
+
+
+
