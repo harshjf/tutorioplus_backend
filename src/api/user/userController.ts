@@ -90,6 +90,23 @@ class UserController {
     const serviceResponse = await userService.changePassword(id, current_password, new_password);
     return handleServiceResponse(serviceResponse, res);
   };
+  public getUserStats: RequestHandler = async (req: Request, res: Response) => {
+    const serviceResponse = await userService.getUserStats();
+    return handleServiceResponse(serviceResponse, res);
+  };
+  public getAssignmentActivity: RequestHandler = async (req: Request, res: Response) => {
+    const range = req.query.range as "week" | "month" | "year";
+    const serviceResponse = await userService.getAssignmentActivity(range);
+    return handleServiceResponse(serviceResponse, res);
+  };
+  public getNotifications: RequestHandler = async (req: Request, res: Response) => {
+    const userId = parseInt(req.query.userId as string);
+    const offset = parseInt(req.query.offset as string) || 0;
+    const limit = parseInt(req.query.limit as string) || 10;
+  
+    const serviceResponse = await userService.getNotifications(userId, offset, limit);
+    return handleServiceResponse(serviceResponse, res);
+  };
   
 }
 

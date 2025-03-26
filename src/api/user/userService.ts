@@ -527,6 +527,58 @@ export class UserService {
       );
     }
   }
+  async getUserStats(): Promise<ServiceResponse<any>> {
+    try {
+      const [
+        totalStudents,
+        assignmentsAnswered,
+        totalAssignments,
+        classesRequested
+      ] = await Promise.all([
+        this.userRepository.getTotalStudents(),
+        this.userRepository.getAssignmentsAnswered(),
+        this.userRepository.getTotalAssignments(),
+        this.userRepository.getOnlineClassesRequested()
+      ]);
+  
+      const result = {
+        totalStudents,
+        assignmentsAnswered,
+        totalAssignments,
+        classesRequested
+      };
+  
+      return ServiceResponse.success("Stats fetched successfully", result);
+    } catch (e) {
+      logger.error("Error fetching stats:", e);
+      return ServiceResponse.failure("Failed to fetch stats", null, StatusCodes.INTERNAL_SERVER_ERROR);
+    }
+  }
+  async getAssignmentActivity(range: "week" | "month" | "year"): Promise<ServiceResponse<any>> {
+    try {
+      const data = await this.userRepository.getAssignmentActivity(range);
+  
+      return ServiceResponse.success("Assignment activity fetched successfully", data);
+    } catch (e) {
+      logger.error("Error fetching assignment activity:", e);
+      return ServiceResponse.failure("Failed to fetch assignment activity", null, StatusCodes.INTERNAL_SERVER_ERROR);
+    }
+  }
+  async getNotifications(userId: number, offset: number, limit: number): Promise<ServiceResponse<any>> {
+    try {
+      const { total, notifications } = await this.userRepository.getNotificationsWithCount(userId, offset, limit);
+  
+      return ServiceResponse.success("Notifications fetched successfully", {
+        total,
+        notifications
+      });
+    } catch (e) {
+      logger.error("Error fetching notifications:", e);
+      return ServiceResponse.failure("Failed to fetch notifications", null, StatusCodes.INTERNAL_SERVER_ERROR);
+    }
+  }
+  
+  
 }
 
 export const userService = new UserService();
