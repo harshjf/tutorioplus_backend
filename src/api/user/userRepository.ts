@@ -270,4 +270,113 @@ export class UserRepository {
     const sql = `UPDATE users SET password = $1, updated_at = NOW() WHERE id = $2`;
     await query(sql, [newPassword, id]);
   }
+  async getTotalStudents(): Promise<number> {
+    const sql = `
+      SELECT COUNT(*) FROM users WHERE role_id = ( SELECT id FROM roles WHERE LOWER(role) = LOWER('Student'));
+    `;
+    const result = await query(sql);
+    return parseInt(result[0].count, 10);
+  }  
+  async getAssignmentsAnswered(): Promise<number> {
+    const sql = `
+      SELECT COUNT(*) FROM document_based_services 
+      WHERE answer_file_path IS NOT NULL
+    `;
+    const result = await query(sql);
+    return parseInt(result[0].count, 10);
+  }  
+  async getTotalAssignments(): Promise<number> {
+    const sql = `SELECT COUNT(*) FROM document_based_services`;
+    const result = await query(sql);
+    return parseInt(result[0].count, 10);
+  }  
+  async getOnlineClassesRequested(): Promise<number> {
+    const sql = `
+      SELECT COUNT(*) FROM session_based_services sbs
+      JOIN services s ON s.id = sbs.service_id
+      WHERE s.service_type = 'Online Class Request'
+    `;
+    const result = await query(sql);
+    return parseInt(result[0].count, 10);
+  }
+  async getAssignmentActivity(range: "week" | "month" | "year"): Promise<{ labels: string[], counts: number[] }> {
+    let sql = "";
+    let labels: string[] = [];
+    let counts: number[] = [];
+  
+    if (range === "week") {
+      sql = `
+        SELECT 
+        TO_CHAR(created_at, 'Dy') as day, 
+        COUNT(*) 
+        FROM document_based_services 
+        WHERE created_at >= date_trunc('week', CURRENT_DATE)
+        GROUP BY TO_CHAR(created_at, 'Dy')
+        ORDER BY array_position(ARRAY['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], TO_CHAR(created_at, 'Dy'))
+      `;
+      labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    } else if (range === "month") {
+      sql = `
+        SELECT 
+        TO_CHAR(created_at, 'Mon') AS month, 
+        COUNT(*) 
+        FROM document_based_services 
+        WHERE date_part('year', created_at) = date_part('year', CURRENT_DATE)
+        GROUP BY TO_CHAR(created_at, 'Mon')
+        ORDER BY array_position(
+        ARRAY['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+        TO_CHAR(created_at, 'Mon')
+        )
+      `;
+      labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    } else if (range === "year") {
+      sql = `
+        SELECT EXTRACT(YEAR FROM created_at)::TEXT AS year, COUNT(*) 
+        FROM document_based_services 
+        GROUP BY year 
+        ORDER BY year
+      `;
+    }
+  
+    const result = await query(sql);
+  
+    if (range === "year") {
+      labels = result.map((r: any) => r.year);
+      counts = result.map((r: any) => parseInt(r.count));
+    } else {
+      const countMap: Record<string, number> = {};
+      for (const row of result) {
+        countMap[row.day || row.month] = parseInt(row.count);
+      }
+      counts = labels.map(label => countMap[label] || 0);
+    }
+  
+    return { labels, counts };
+  }
+  async getNotificationsWithCount(userId: number, offset: number, limit: number): Promise<{ total: number, notifications: any[] }> {
+    const sql = `
+      SELECT
+        id,
+        user_id,
+        title,
+        message,
+        created_at,
+        COUNT(*) OVER() AS total_count
+      FROM user_notifications
+      WHERE user_id = $1
+      ORDER BY created_at DESC
+      OFFSET $2 LIMIT $3
+    `;
+  
+    const result = await query(sql, [userId, offset, limit]);
+  
+    const total = result.length > 0 ? parseInt(result[0].total_count) : 0;
+    const notifications = result.map((row: any) => {
+      const { total_count, ...rest } = row;
+      return rest;
+    });
+  
+    return { total, notifications };
+  }
+  
 }
