@@ -1,8 +1,14 @@
 import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
 import express, { type Router } from "express";
 import { z } from "zod";
-import { createApiBody, createApiResponse } from "@/api-docs/openAPIResponseBuilders";
-import {  AddServiceRequestSchema, ServiceSchema } from "@/api/service/serviceModel";
+import {
+  createApiBody,
+  createApiResponse,
+} from "@/api-docs/openAPIResponseBuilders";
+import {
+  AddServiceRequestSchema,
+  ServiceSchema,
+} from "@/api/service/serviceModel";
 import { serviceController } from "./serviceController";
 import { optionalFileUpload } from "@/common/middleware/uploadMiddleware";
 import { verifyToken } from "@/common/middleware/jwtVerification";
@@ -20,7 +26,7 @@ serviceRegistry.registerPath({
   responses: createApiResponse(z.array(ServiceSchema), "Success"),
 });
 
-serviceRouter.get("/",serviceController.getServices);
+serviceRouter.get("/", serviceController.getServices);
 
 serviceRegistry.registerPath({
   method: "get",
@@ -29,25 +35,26 @@ serviceRegistry.registerPath({
   responses: createApiResponse(z.array(ServiceSchema), "Success"),
 });
 
-serviceRouter.get("/getservicesfornavbar",
-  verifyToken ,authorize(["Student"]),serviceController.getServicesForNavbar);
+serviceRouter.get(
+  "/getservicesfornavbar",
+  serviceController.getServicesForNavbar
+);
 
 serviceRegistry.registerPath({
-    method: "get",
-    path: "/services/details/:id",
-    tags: ["Services"],
-    responses: createApiResponse(z.array(ServiceSchema), "Success"),
+  method: "get",
+  path: "/services/details/:id",
+  tags: ["Services"],
+  responses: createApiResponse(z.array(ServiceSchema), "Success"),
 });
-  
-serviceRouter.get("/details/:id",
-    verifyToken ,authorize(["Student"]),serviceController.getServiceDetails);
+
+serviceRouter.get("/details/:id", serviceController.getServiceDetails);
 
 serviceRegistry.registerPath({
-    method: "post",
-    path: "/services/addService",
-    tags: ["Services"],
-    requestBody: createApiBody(AddServiceRequestSchema),
-    responses: createApiResponse(z.string(), "Success"),
+  method: "post",
+  path: "/services/addService",
+  tags: ["Services"],
+  requestBody: createApiBody(AddServiceRequestSchema),
+  responses: createApiResponse(z.string(), "Success"),
 });
 
 serviceRouter.post(
@@ -60,17 +67,16 @@ serviceRouter.post(
 
 serviceRegistry.registerPath({
   method: "post",
-  path: "/services/addService",
+  path: "/services/adhocServiceRequest",
   tags: ["Services"],
   requestBody: createApiBody(AddServiceRequestSchema),
   responses: createApiResponse(z.string(), "Success"),
 });
 
 serviceRouter.post(
-"/addService",
-verifyToken,
-optionalFileUpload,
-serviceController.addService
+  "/adhocServiceRequest",
+  optionalFileUpload,
+  serviceController.adhocServiceRequest
 );
 
 serviceRegistry.registerPath({
@@ -81,24 +87,25 @@ serviceRegistry.registerPath({
 });
 
 serviceRouter.post(
-"/getAssignmentList",
-verifyToken ,authorize(["Admin","Student"]),
-serviceController.getAssignmentList
+  "/getAssignmentList",
+  verifyToken,
+  authorize(["Admin", "Student"]),
+  serviceController.getAssignmentList
 );
 
 serviceRouter.post(
   "/getSessionsList",
   verifyToken,
-  authorize(["Admin","Student"]),
+  authorize(["Admin", "Student"]),
   serviceController.getSessionsList
-  );
-  
-  serviceRegistry.registerPath({
-    method: "post",
-    path: "/services/getSessionsList",
-    tags: ["Services"],
-    responses: createApiResponse(z.string(), "Success"),
-  });
+);
+
+serviceRegistry.registerPath({
+  method: "post",
+  path: "/services/getSessionsList",
+  tags: ["Services"],
+  responses: createApiResponse(z.string(), "Success"),
+});
 
   serviceRouter.post(
     "/getOtherServicesList",
@@ -124,11 +131,11 @@ serviceRegistry.registerPath({
 
 serviceRouter.post(
   "/submitAnswer",
-  verifyToken ,authorize(["Admin"]),
+  verifyToken,
+  authorize(["Admin"]),
   optionalFileUpload,
   serviceController.submitAnswer
 );
-
 
 serviceRegistry.registerPath({
   method: "post",
@@ -138,9 +145,9 @@ serviceRegistry.registerPath({
 });
 
 serviceRouter.post(
-"/assignmentor",
-verifyToken,
-serviceController.assignMentor
+  "/assignmentor",
+  verifyToken,
+  serviceController.assignMentor
 );
 
 serviceRegistry.registerPath({

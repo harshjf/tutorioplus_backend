@@ -58,6 +58,69 @@ export class ServiceService {
         }
     }
 
+    async adhocServiceRequest(request: any) {
+      try {
+        const service = await this.serviceRepository.getServiceById(
+          parseInt(request.body.serviceId)
+        );
+        if (!service) {
+          return ServiceResponse.failure(
+            "Service not found",
+            null,
+            StatusCodes.NOT_FOUND
+          );
+  
+        }
+  
+        if (service.category === "Document Based") {
+          const docPath = request.file ? request.file.path : null;
+          const { studentId, subject, serviceId, description, dueDate } =
+            request.body;
+          await this.serviceRepository.addDocumentBasedService(
+            studentId,
+            subject,
+            serviceId,
+            docPath,
+            description,
+            dueDate
+          );
+        } else if (service.category === "Session Based") {
+          const {
+            studentId,
+            subject,
+            serviceId,
+            scheduledTime,
+            duration,
+            link,
+            payment_id,
+          } = request.body;
+          await this.serviceRepository.addSessionBasedService(
+            studentId,
+            subject,
+            serviceId,
+            scheduledTime,
+            duration,
+            link,
+            payment_id
+          );
+        } else {
+          return ServiceResponse.failure(
+            "Invalid service category",
+            null,
+            StatusCodes.BAD_REQUEST
+          );
+        }
+        return ServiceResponse.success("Service added successfully", null);
+      } catch (e) {
+        logger.error(`Error adding service: ${e}`);
+        return ServiceResponse.failure(
+          "Failed to add service",
+          null,
+          StatusCodes.INTERNAL_SERVER_ERROR
+        );
+      }
+    }
+
     async getAssignmentList(filter:GetAssignmentListFilter, student_id:string) {
       try {
         const assignments = await this.serviceRepository.getAssignmentList(filter,student_id);
