@@ -31,6 +31,12 @@ class ServiceController{
       return handleServiceResponse(serviceResponse, res);
     };
 
+    public getOtherServicesList: RequestHandler = async(req: Request, res:Response) =>{
+      const { filter, student_id } = req.body || {};
+      const serviceResponse = await serviceService.getOtherServicesList(filter, student_id);
+      return handleServiceResponse(serviceResponse, res);
+    };
+
     public assignMentor: RequestHandler = async(req: Request, res: Response) =>{
       const{doc_based_service_id, mentor_id} = req.body || {};
       const serviceResponse = await serviceService.assignMentor(doc_based_service_id, mentor_id);
@@ -62,8 +68,15 @@ class ServiceController{
       const serviceResponse = await serviceService.getServiceDetails(serviceId);
       return handleServiceResponse(serviceResponse, res);
     };
-    
-    
+
+    public updateStatus: RequestHandler = async (req: Request, res: Response) => {
+      const serviceResponse = await serviceService.updateStatus(req);
+      return handleServiceResponse(serviceResponse, res);
+    };
+    public addPayment: RequestHandler = async (req: Request, res: Response) => {
+      const serviceResponse = await serviceService.addPayment(req);
+      return handleServiceResponse(serviceResponse, res);
+    };
 }
 
 export const serviceController = new ServiceController();

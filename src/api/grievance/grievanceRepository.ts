@@ -9,7 +9,6 @@ export class GrievanceRepository {
       u.name AS student_name,
       u.email AS student_email,
       sm.phone_number AS student_phone,
-      s.service_type AS service_name,
       g.description,
       g.status,
       g.created_at AS created_date
@@ -19,8 +18,6 @@ export class GrievanceRepository {
           users u ON g.student_id = u.id
       JOIN 
           student_metadata sm ON u.id = sm.user_id
-      JOIN 
-          services s ON g.service_id = s.id
       WHERE g.active = TRUE`;
     
     const conditions: string[] = [];
@@ -84,13 +81,13 @@ export class GrievanceRepository {
     const result = await query(sql, values);
     return result;
   }
-  async addGrievance(studentId:number,serviceId:number,description:string): Promise<Grievance> {
+  async addGrievance(studentId:number,description:string): Promise<Grievance> {
     const sql = `
-      INSERT INTO grievances (student_id, service_id, description)
-      VALUES ($1, $2, $3)
+      INSERT INTO grievances (student_id, description)
+      VALUES ($1, $2)
       RETURNING *
     `;
-    const values = [studentId, serviceId, description];
+    const values = [studentId, description];
     const result = await query(sql, values);
     return result[0];
   }
@@ -101,6 +98,10 @@ export class GrievanceRepository {
   }
   async softDeleteGrievance(grievanceId: number): Promise<void> {
     const sql = `UPDATE grievances SET active = FALSE WHERE id = $1`;
+    await query(sql, [grievanceId]);
+}
+async markAsResolved(grievanceId: number): Promise<void> {
+    const sql = `UPDATE grievances SET status = 'Resolved' WHERE id = $1`;
     await query(sql, [grievanceId]);
 }
 }

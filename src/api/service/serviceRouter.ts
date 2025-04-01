@@ -100,6 +100,21 @@ serviceRouter.post(
     responses: createApiResponse(z.string(), "Success"),
   });
 
+  serviceRouter.post(
+    "/getOtherServicesList",
+    verifyToken,
+    authorize(["Admin","Student"]),
+    serviceController.getOtherServicesList
+    );
+    
+    serviceRegistry.registerPath({
+      method: "post",
+      path: "/services/getOtherServicesList",
+      tags: ["Services"],
+      responses: createApiResponse(z.string(), "Success"),
+    });
+  
+
 serviceRegistry.registerPath({
   method: "post",
   path: "/services/submitAnswer",
@@ -156,6 +171,28 @@ serviceRouter.post(
   serviceController.deleteSession
 );
 
+serviceRegistry.registerPath({
+  method: "post",
+  path: "/services/updateStatus",
+  tags: ["Services"],
+  responses: createApiResponse(z.string(), "Success"),
+});
 
+serviceRouter.post(
+  "/updateStatus",
+  verifyToken,
+  authorize(["Admin"]),
+  serviceController.updateStatus
+);
 
-  
+serviceRegistry.registerPath({
+  method: "post",
+  path: "/services/addPayment",
+  tags: ["Services"],
+  responses: createApiResponse(z.string(), "Success"),
+});
+
+serviceRouter.post(
+  "/addPayment",
+  serviceController.addPayment
+); 

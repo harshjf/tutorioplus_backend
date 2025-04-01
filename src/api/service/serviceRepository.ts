@@ -51,9 +51,9 @@ export class ServiceRepository {
     const result = await query(sql, values);
     return result;
     }      
-    async addSessionBasedService(studentId:number,serviceId:number,scheduledTime:string,duration:string,link:string, payment_id:string): Promise<SessionBasedService>{
-        const sql="INSERT INTO session_based_services(student_id,service_id,schedule_time,duration,link,payment_id) VALUES($1,$2,$3,$4,$5,$6) returning *";
-        const result=await query(sql,[studentId,serviceId,scheduledTime,duration,link,payment_id]);
+    async addSessionBasedService(studentId:number,subject:string,serviceId:number,scheduledTime:string,duration:string,link:string, payment_id:string): Promise<SessionBasedService>{
+        const sql="INSERT INTO session_based_services(student_id,subject,service_id,schedule_time,duration,link,payment_id) VALUES($1,$2,$3,$4,$5,$6,$7) returning *";
+        const result=await query(sql,[studentId,subject,serviceId,scheduledTime,duration,link,payment_id]);
         return result;
     }
     async getAssignmentList(filter:GetAssignmentListFilter, student_id:string){
@@ -70,6 +70,7 @@ export class ServiceRepository {
             dbs.description,
             dbs.answer_file_path,
             dbs.answer_description,
+            dbs.answer_submitted_at,
             dbs.due_date,
             dbs.created_at,
             dbs.updated_at
@@ -147,19 +148,88 @@ export class ServiceRepository {
     async getSessionsList(filter:GetAssignmentListFilter, student_id:string){
         let sql = `
          SELECT 
-            sbs.id,
-            sbs.student_id,
-            u.name AS student_name,  
-            sbs.service_id,
-            sbs.schedule_time,
-            sbs.duration,
-            s.service_type AS service_name,
-            sbs.created_at,
-            sbs.updated_at
-        FROM session_based_services sbs
-        JOIN users u ON sbs.student_id = u.id
-        JOIN services s ON sbs.service_id=s.id
-        WHERE sbs.active = true
+        sbs.id,
+        sbs.student_id,
+        u.name AS student_name,  
+        sbs.service_id,
+        u.email AS student_email,
+        sm.phone_number AS student_phone,
+        sm.country_code AS country_code,
+        sbs.schedule_time,
+        sbs.duration,
+        sbs.subject,
+        s.service_type AS service_name,
+        sbs.created_at,
+        sbs.updated_at
+    FROM session_based_services sbs
+    JOIN users u ON sbs.student_id = u.id
+    JOIN student_metadata sm ON sm.user_id = u.id
+    JOIN services s ON sbs.service_id = s.id
+    WHERE sbs.active = true
+      AND sbs.service_id NOT IN (
+          SELECT id FROM services WHERE service_type = 'Others'
+      )
+        `;
+        const conditions: string[] = [];
+        const values: any[] = [];
+        if(filter){
+            if (filter.name) {
+                conditions.push(`u.name ILIKE $${values.length + 1}`);
+                values.push(`%${filter.name}%`);
+            }
+            if (filter.description) {
+                conditions.push(`sbs.description ILIKE $${values.length + 1}`);
+                values.push(`%${filter.description}%`);
+            }
+            if (filter.due_date) {
+                const formattedDate = new Date(filter.due_date).toISOString().split('T')[0];
+                conditions.push(`sbs.due_date::DATE = $${values.length + 1}`);           
+                values.push(formattedDate);
+            }
+            if (filter.services) {
+                const serviceIds = filter.services.replace(/&comma;/g, ',').split(',').map(Number);
+                
+                if (serviceIds.length > 0) {
+                    conditions.push(`sbs.service_id = ANY($${values.length + 1})`);
+                    values.push(serviceIds);
+                }
+            }
+        }
+        if (student_id) {
+            conditions.push(`sbs.student_id = $${values.length + 1}`);
+            values.push(student_id);
+        }
+        if (conditions.length > 0) {
+            sql += ` AND ` + conditions.join(' AND ');
+        }
+
+        const result = await query(sql, values);
+        return result;
+    }
+    async getOtherServicesList(filter:GetAssignmentListFilter, student_id:string){
+        let sql = `
+         SELECT 
+        sbs.id,
+        sbs.student_id,
+        u.name AS student_name,  
+        sbs.service_id,
+        u.email AS student_email,
+        sm.phone_number AS student_phone,
+        sm.country_code AS country_code,
+        sbs.schedule_time,
+        sbs.duration,
+         sbs.subject,
+        s.service_type AS service_name,
+        sbs.created_at,
+        sbs.updated_at
+    FROM session_based_services sbs
+    JOIN users u ON sbs.student_id = u.id
+    JOIN student_metadata sm ON sm.user_id = u.id
+    JOIN services s ON sbs.service_id = s.id
+    WHERE sbs.active = true
+      AND sbs.service_id IN (
+          SELECT id FROM services WHERE service_type = 'Others'
+      )
         `;
         const conditions: string[] = [];
         const values: any[] = [];
@@ -222,6 +292,7 @@ export class ServiceRepository {
           UPDATE document_based_services 
           SET answer_description = $1, 
               answer_file_path = $2, 
+              answer_submitted_at = NOW(),
               updated_at = NOW() 
           WHERE id = $3
         `;
@@ -287,5 +358,27 @@ export class ServiceRepository {
         const sql = `SELECT * FROM assignment_help_content WHERE service_id = $1`;
         const result = await query(sql, [serviceId]);
         return result[0] || null;
-    }    
+    }  
+    async updateStatus(id: number, isApproved:string) {
+        const status = isApproved === "true" ? "Approved" : "Rejected";
+        const sql = `
+          UPDATE session_based_services
+          SET status = $2
+          WHERE id = $1 
+          returning *
+        `;
+        
+        const result = await query(sql, [id, status]);
+        return result[0];
+    }  
+    async insertPaymentHistory(studentId: number | undefined, paymentId: string, amount: number) {
+        const sql = `
+          INSERT INTO payment_history (student_id, payment_id, amount)
+          VALUES ($1, $2, $3)
+          RETURNING *;
+        `;
+        const result = await query(sql, [studentId || null, paymentId, amount]);
+        return result[0];
+      }
+      
 }

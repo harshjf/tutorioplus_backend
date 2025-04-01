@@ -15,7 +15,6 @@ export const GrievanceSchema = z.object({
 
 export const GrievanceCreateSchema = z.object({
     student_id: z.number(),
-    service_id: z.number(),
     description: z.string(),
     //status: z.string().optional(), 
 });

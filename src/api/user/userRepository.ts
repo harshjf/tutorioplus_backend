@@ -46,6 +46,10 @@ export class UserRepository {
         sm.phone_number,
         sm.purpose_of_sign_in,
         sm.first_payment_date,
+        sm.country_code,
+        sm.country,
+        sm.state,
+        sm.city,
         sm.created_at AS metadata_created_at,
         sm.updated_at AS metadata_updated_at
       FROM 
@@ -83,15 +87,15 @@ export class UserRepository {
     console.log("result", result); */
     return result;
   }  
-  async insertMetaData(id:number,country:string,state:string,city:string,pinCode:string,purposeOfSignIn:string,firstPaymentDate:Date | null,address:string,phone:string){
-    const sql="INSERT INTO student_metadata(user_id,country,state,city,pincode,purpose_of_sign_in,first_payment_date,address,phone_number) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)";
+  async insertMetaData(id:number,country:string,state:string,city:string,pinCode:string,purposeOfSignIn:string,firstPaymentDate:Date | null,address:string,phone:string,countryCode:string){
+    const sql="INSERT INTO student_metadata(user_id,country,state,city,pincode,purpose_of_sign_in,first_payment_date,address,phone_number,country_code) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)";
     console.log("Country,state,city")
-    const result=await query(sql,[id,country,state,city,pinCode,purposeOfSignIn,firstPaymentDate,address,phone]);
+    const result=await query(sql,[id,country,state,city,pinCode,purposeOfSignIn,firstPaymentDate,address,phone,countryCode]);
     return result;
   }
-  async insertMentorMetaData(id:number,phoneNumber:string,address:string,qualification:string,teachingExperience:number,jobType:string,country:string,state:string,city:string,cvPath:string){
-    const sql="INSERT INTO mentor_metadata(user_id,phone_number,address,qualification,teaching_experience,job_type,cv,country,state,city) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)";
-    const result=await query(sql,[id,phoneNumber,address,qualification,teachingExperience,jobType,cvPath,country,state,city]);
+  async insertMentorMetaData(id:number,phoneNumber:string,address:string,qualification:string,teachingExperience:number,jobType:string,country:string,state:string,city:string,cvPath:string,countryCode:string){
+    const sql="INSERT INTO mentor_metadata(user_id,phone_number,address,qualification,teaching_experience,job_type,cv,country,state,city,country_code) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)";
+    const result=await query(sql,[id,phoneNumber,address,qualification,teachingExperience,jobType,cvPath,country,state,city,countryCode]);
     return result[0];
   }
   async saveResetToken(id:number, token:string, expiryDate:Date){
@@ -170,7 +174,8 @@ export class UserRepository {
         mm.cv,
         mm.country,
         mm.state,
-        mm.city
+        mm.city,
+        mm.country_code
       FROM 
         users u
       JOIN 

@@ -46,8 +46,8 @@ export class ServiceService {
             const{studentId,subject,serviceId,description,dueDate}=request.body;            
             await this.serviceRepository.addDocumentBasedService(studentId,subject,serviceId,docPath,description,dueDate);
           } else if (service.category === "Session Based") {
-            const{studentId,serviceId,scheduledTime,duration,link,payment_id}=request.body;            
-            await this.serviceRepository.addSessionBasedService(studentId,serviceId,scheduledTime,duration,link,payment_id);
+            const{studentId,subject,serviceId,scheduledTime,duration,link,payment_id}=request.body;            
+            await this.serviceRepository.addSessionBasedService(studentId,subject,serviceId,scheduledTime,duration,link,payment_id);
           } else {
             return ServiceResponse.failure("Invalid service category", null, StatusCodes.BAD_REQUEST);
           }   
@@ -76,6 +76,21 @@ export class ServiceService {
     async getSessionsList(filter:GetAssignmentListFilter, student_id:string) {
       try {
         const assignments = await this.serviceRepository.getSessionsList(filter,student_id);
+        if(assignments.length>0){
+          return ServiceResponse.success<DocumentBasedService[]>("Assignments retrieved successfully.", assignments);
+        }else{
+          return ServiceResponse.success<DocumentBasedService[]>("No assignments available for the given criteria.", assignments);
+        }        
+      } catch (e) {
+          const errorMessage = `Error occured during fetching assignments: ${e}`;
+          logger.error(errorMessage);
+          return ServiceResponse.failure("An error occurred during fetching assignments", null, StatusCodes.INTERNAL_SERVER_ERROR);
+      }
+    }
+
+    async getOtherServicesList(filter:GetAssignmentListFilter, student_id:string) {
+      try {
+        const assignments = await this.serviceRepository.getOtherServicesList(filter,student_id);
         if(assignments.length>0){
           return ServiceResponse.success<DocumentBasedService[]>("Assignments retrieved successfully.", assignments);
         }else{
@@ -215,6 +230,49 @@ export class ServiceService {
         const errorMessage = `Error fetching service details: ${e}`;
         logger.error(errorMessage);
         return ServiceResponse.failure("An error occurred", null, StatusCodes.INTERNAL_SERVER_ERROR);
+      }
+    }
+    
+
+    async updateStatus(req:any) {
+      const { id,isApproved} = req.body;
+      try {
+        if (!id) {
+          return ServiceResponse.failure("Assignment ID is required.", null, StatusCodes.BAD_REQUEST);
+        }    
+        const assignmentExists = await this.serviceRepository.checkSessionExists(id);
+        if (!assignmentExists) {
+          return ServiceResponse.failure("Assignment not found", null, StatusCodes.NOT_FOUND);
+        }
+        const result = await this.serviceRepository.updateStatus(id,isApproved);
+        
+        if (result) {
+          return ServiceResponse.success("Service status updated successfully!.", result);
+        } else {
+          return ServiceResponse.failure("Service not found!", null, StatusCodes.NOT_FOUND);
+        }
+      } catch (e) {
+        logger.error(`Error in updating the status: ${e}`);
+        return ServiceResponse.failure("An error occurred while updating the status.", null, StatusCodes.INTERNAL_SERVER_ERROR);
+      }
+    }
+
+    async addPayment(req: any): Promise<ServiceResponse<any>> {
+      const { studentId, paymentId, amount } = req.body;
+      try {
+        const result = await this.serviceRepository.insertPaymentHistory(
+          studentId,
+          paymentId,
+          amount
+        );
+        return ServiceResponse.success("Payment record added successfully", result);
+      } catch (e) {
+        logger.error(`Error inserting payment history: ${e}`);
+        return ServiceResponse.failure(
+          "Failed to insert payment record",
+          null,
+          StatusCodes.INTERNAL_SERVER_ERROR
+        );
       }
     }
     

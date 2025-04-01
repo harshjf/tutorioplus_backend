@@ -26,9 +26,9 @@ class GrievanceService {
     }
   }
 
-  async addGrievance(studentId:number,serviceId:number,description:string): Promise<ServiceResponse<Grievance | null>>{
+  async addGrievance(studentId:number,description:string): Promise<ServiceResponse<Grievance | null>>{
     try {
-      const grievance = await this.grievanceRepository.addGrievance(studentId,serviceId,description);
+      const grievance = await this.grievanceRepository.addGrievance(studentId,description);
       return ServiceResponse.success<Grievance>("Grievance added successfully", grievance);
     } catch (e) {
       const errorMessage = `Error occurred while creating grievance: ${e}`;
@@ -54,7 +54,32 @@ class GrievanceService {
             StatusCodes.INTERNAL_SERVER_ERROR
         );
     }
+
+    
 }
+
+async markAsResolved(grievanceId: number): Promise<ServiceResponse<null>> {
+  try {
+      const grievanceExists = await this.grievanceRepository.getGrievanceById(grievanceId);
+      if (!grievanceExists) {
+          return ServiceResponse.failure("Grievance not found", null, StatusCodes.NOT_FOUND);
+      }
+
+      await this.grievanceRepository.markAsResolved(grievanceId);
+      return ServiceResponse.success("Grievance marked as resolved successfully", null);
+  } catch (e) {
+      const errorMessage = `Error in marking the grievance as resolved: ${e}`;
+      logger.error(errorMessage);
+      return ServiceResponse.failure(
+          "An error occurred while marking the grievance as resolved",
+          null,
+          StatusCodes.INTERNAL_SERVER_ERROR
+      );
+  }
+
+  
+}
+
 
 }
 

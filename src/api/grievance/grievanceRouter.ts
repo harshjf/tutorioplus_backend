@@ -39,3 +39,12 @@ grievanceRegistry.registerPath({
 
 grievanceRouter.post("/deleteGrievance",verifyToken,authorize(["Admin"]), grievanceController.deleteGrievance);
 
+grievanceRegistry.registerPath({
+  method: "post",
+  path: "/grievances",
+  tags: ["Grievance"],
+  responses: createApiResponse(GrievanceSchema, "Success"),
+});
+
+grievanceRouter.post("/markAsResolved",verifyToken,authorize(["Admin"]), grievanceController.markAsResolved);
+

@@ -113,7 +113,8 @@ export class UserService {
     purposeOfSignIn: string,
     firstPaymentDate: Date | null,
     address: string,
-    phone: string
+    phone: string,
+    countryCode:string
   ): Promise<ServiceResponse<User | null>> {
     const role_id = 2;
     try {
@@ -133,7 +134,8 @@ export class UserService {
         purposeOfSignIn,
         firstPaymentDate,
         address,
-        phone
+        phone,
+        countryCode
       );
       return ServiceResponse.success("User added successfully!", user);
     } catch (e) {
@@ -169,6 +171,7 @@ export class UserService {
         country,
         state,
         city,
+        countryCode
       } = req.body;
       const result = await this.userRepository.insertMentorMetaData(
         user?.id || 0,
@@ -180,7 +183,8 @@ export class UserService {
         country,
         state,
         city,
-        cvPath
+        cvPath,
+        countryCode
       );
       return ServiceResponse.success("Mentor added successfully!", result);
     } catch (e) {

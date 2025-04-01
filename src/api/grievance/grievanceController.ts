@@ -12,7 +12,7 @@ class GrievanceController {
 
   public createGrievance: RequestHandler = async (req: Request, res: Response) => {
     const{studentId,serviceId,description}=req.body;
-    const serviceResponse = await grievanceService.addGrievance(studentId,serviceId,description);
+    const serviceResponse = await grievanceService.addGrievance(studentId,description);
     return handleServiceResponse(serviceResponse, res);
   };
   public deleteGrievance: RequestHandler = async (req: Request, res: Response) => {
@@ -21,7 +21,11 @@ class GrievanceController {
     return handleServiceResponse(serviceResponse, res);
 };
 
-
+public markAsResolved: RequestHandler = async (req: Request, res: Response) => {
+  const { id } = req.body;
+  const serviceResponse= await grievanceService.markAsResolved(id);
+  return handleServiceResponse(serviceResponse, res);
+};
 }
 
 export const grievanceController = new GrievanceController();
