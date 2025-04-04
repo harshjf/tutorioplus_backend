@@ -96,7 +96,7 @@ const sendEmailNotification = async (
     if (result.length === 0)
       throw new Error("Base notification template not found");
 
-    const { id, subject, content, wildcards, channel } = result[0];
+    const { content } = result[0];
 
     message = content.replace("%BODY%", message);
 
