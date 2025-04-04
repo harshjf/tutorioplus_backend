@@ -662,6 +662,32 @@ export class UserService {
       );
     }
   }
+  async addDemoClass(demoData: any): Promise<ServiceResponse<null>> {
+  try {
+    await this.userRepository.addDemoClass(demoData);
+    return ServiceResponse.success("Demo class submitted successfully", null);
+  } catch (e) {
+    logger.error("Error submitting demo class:", e);
+    return ServiceResponse.failure(
+      "An error occurred while submitting demo class",
+      null,
+      StatusCodes.INTERNAL_SERVER_ERROR
+    );
+  }
+}
+async getDemoClassList(): Promise<ServiceResponse<any>> {
+  try {
+    const demoClasses = await this.userRepository.getDemoClassList();
+    return ServiceResponse.success("Demo class list fetched successfully", { demoClasses });
+  } catch (e) {
+    logger.error("Error fetching demo class list:", e);
+    return ServiceResponse.failure(
+      "Failed to fetch demo class list",
+      null,
+      StatusCodes.INTERNAL_SERVER_ERROR
+    );
+  }
+}
 }
 
 export const userService = new UserService();
