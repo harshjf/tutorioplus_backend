@@ -1,3 +1,49 @@
+CREATE TABLE notifications (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(255) UNIQUE NOT NULL,
+    category VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT now(),
+    updated_at TIMESTAMP DEFAULT now()
+);
+
+CREATE TABLE notification_channels (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(50) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT now()
+);
+
+CREATE TABLE notification_templates (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(255) UNIQUE NOT NULL,
+    wildcards TEXT,
+    subject VARCHAR(255),
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT now()
+);
+
+CREATE TABLE notification_channel_mapping (
+    id BIGSERIAL PRIMARY KEY,
+    notification_id BIGINT REFERENCES notifications(id) ON DELETE CASCADE,
+    channel_id BIGINT REFERENCES notification_channels(id) ON DELETE CASCADE,
+    template_id BIGINT REFERENCES notification_templates(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT now()
+);
+
+CREATE TABLE user_notifications (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
+    notification_id BIGINT REFERENCES notifications(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    status VARCHAR(20) DEFAULT 'unread' CHECK (status IN ('unread', 'read')),
+    created_at TIMESTAMP DEFAULT now()
+);
+
+INSERT INTO notification_channels (name) VALUES 
+    ('EMAIL'),
+    ('WHATSAPP'),
+    ('NOTIFICATION');
+
 ALTER TABLE notification_templates ALTER COLUMN wildcards TYPE jsonb USING wildcards::jsonb;
 
 INSERT INTO notifications (name, category) VALUES
@@ -18,7 +64,7 @@ INSERT INTO notification_templates (name, wildcards, subject, content) VALUES
 '<p><strong>%mentorName%</strong> has submitted a request to become a mentor.</p><p>Please log in to the admin dashboard to review their details and take the necessary action.</p>'),
 
 ('ADDED_OTHER_SERVICE_EMAIL_TEMPLATE', '["%userName%", "%amount%"]'::jsonb, 'Other Service Payment Received',
-'<p>Someone named <strong>%userName%</strong> has paid <strong>%amount%</strong> for a service request.</p><p>Please check the payment details and reach out to the user if needed.</p>'),
+'<p>A student with <strong>%userName%</strong> has requested service for amount - <strong>$%amount%</strong>.</p><p>Please check the payment details via admin panel in Other Services Tab.</p>'),
 
 ('ONBOARDING_EMAIL_TEMPLATE', '["%studentName%"]'::jsonb, 'Welcome to Tutorioplus!',
 '<p>Hey <strong>%studentName%</strong>,</p><p>Welcome to <strong>Tutorioplus</strong>!<br>We’re super excited to have you onboard and help you throughout your learning journey.</p><p>If you run into any difficulties, feel free to reach out to us at <a href="mailto:support@tutorioplus.com">support@tutorioplus.com</a> — we’ll do our best to assist you as quickly as possible.</p><p>Let’s make learning awesome together!</p>'),
