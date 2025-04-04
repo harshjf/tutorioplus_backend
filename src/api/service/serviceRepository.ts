@@ -307,14 +307,18 @@ export class ServiceRepository {
     answer_file_path: string | null
   ) {
     const sql = `
-          UPDATE document_based_services 
-          SET answer_description = $1, 
-              answer_file_path = $2, 
-              answer_submitted_at = NOW(),
-              updated_at = NOW() 
-          WHERE id = $3
+         WITH updated AS (
+         UPDATE document_based_services 
+         SET 
+            answer_description = $1, 
+            answer_file_path = $2, 
+            answer_submitted_at = NOW(),
+            updated_at = NOW() 
+        WHERE id = $3 RETURNING * )
+        SELECT updated.*, u.name AS name FROM updated JOIN users u ON u.id = updated.student_id;
         `;
-    await query(sql, [answer_description, answer_file_path, id]);
+    const result=await query(sql, [answer_description, answer_file_path, id]);
+    return result[0];
   }
   async deleteAssignment(id: number) {
     const sql = `
@@ -398,5 +402,9 @@ export class ServiceRepository {
         const result = await query(sql, [studentId || null, paymentId, amount]);
         return result[0];
       }
-      
+    async getUserName (id:number){
+        const sql="SELECT name FROM users WHERE id=$1";
+        const result=await query(sql,[id]);
+        return result[0].name;
+      }  
 }

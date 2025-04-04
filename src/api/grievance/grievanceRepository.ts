@@ -83,9 +83,14 @@ export class GrievanceRepository {
   }
   async addGrievance(studentId:number,description:string): Promise<Grievance> {
     const sql = `
-      INSERT INTO grievances (student_id, description)
-      VALUES ($1, $2)
-      RETURNING *
+      WITH inserted AS (
+        INSERT INTO grievances (student_id, description)
+        VALUES ($1, $2)
+        RETURNING *
+    )
+    SELECT inserted.*, u.name AS name
+    FROM inserted
+    JOIN users u ON u.id = inserted.student_id;
     `;
     const values = [studentId, description];
     const result = await query(sql, values);

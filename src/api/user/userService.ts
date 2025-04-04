@@ -17,6 +17,7 @@ import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcrypt";
 import sendResetPasswordEmail from "@/common/utils/emailService";
+import notificationQueue from "@/notifications/queue";
 
 export class UserService {
   private userRepository: UserRepository;
@@ -137,6 +138,13 @@ export class UserService {
         phone,
         countryCode
       );
+       await notificationQueue.add("sendNotification", {
+            type: "ONBOARDING",
+            userId: 1,
+            params: {
+              "%studentName%": user.name
+            },
+          });
       return ServiceResponse.success("User added successfully!", user);
     } catch (e) {
       const errorMessage = `Error during sign-up: ${e}`;
@@ -160,6 +168,7 @@ export class UserService {
         hashedPassword,
         role_id
       );
+      //console.log("USER",user);
       const cvPath = req.files && req.files.cv ? req.files.cv[0].path : null;
       /*  const photoPath = req.files && req.files.photo ? req.files.photo[0].path : null; */
       const {
@@ -186,6 +195,13 @@ export class UserService {
         cvPath,
         countryCode
       );
+   await notificationQueue.add("sendNotification", {
+            type: "MENTOR_ADDED",
+            userId: 1,
+            params: {
+              "%mentorName%": user.name
+            },
+          });
       return ServiceResponse.success("Mentor added successfully!", result);
     } catch (e) {
       const errorMessage = `Error during mentor sign-up: ${e}`;
@@ -215,8 +231,15 @@ export class UserService {
 
         await this.userRepository.saveResetToken(user.id, token, expiryDate);
 
-        const resetLink = `http://localhost:3000/forgot-password?token=${token}`;
-        await sendResetPasswordEmail(user.email, resetLink);
+        const resetLink = `https://tutorioplus.com/forgot-password?token=${token}`;
+        //await sendResetPasswordEmail(user.email, resetLink);
+        await notificationQueue.add("sendNotification", {
+          type: "FORGOT_PASSWORD",
+          userId: user.id,
+          params: {
+            "%resetLink%": resetLink
+          },
+        }); 
         return ServiceResponse.success("User found successfully!", user);
       }
     } catch (e) {

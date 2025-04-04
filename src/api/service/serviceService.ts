@@ -1,5 +1,5 @@
 import { StatusCodes } from "http-status-codes";
-
+import notificationQueue from "@/notifications/queue";
 import type { DocumentBasedService, GetAssignmentListFilter, Service } from "@/api/service/serviceModel";
 import { ServiceRepository } from "@/api/service/serviceRepository";
 import { ServiceResponse } from "@/common/models/serviceResponse";
@@ -51,6 +51,15 @@ export class ServiceService {
           } else {
             return ServiceResponse.failure("Invalid service category", null, StatusCodes.BAD_REQUEST);
           }   
+          const name=await this.serviceRepository.getUserName(request.body.studentId);
+          await notificationQueue.add("sendNotification", {
+            type: "SERVICE_ADDED",
+            userId: 1,
+            params: {
+              "%userName%": name,
+              "%serviceName%": service.service_type,
+            },
+          });
           return ServiceResponse.success("Service added successfully", null);
         } catch (e) {
           logger.error(`Error adding service: ${e}`);
@@ -192,6 +201,14 @@ export class ServiceService {
         }
     
         const result=await this.serviceRepository.updateAnswer(assignmentId, answer_description, answerFilePath);
+        console.log("Result",result);
+         await notificationQueue.add("sendNotification", {
+            type: "ASSIGNMENT_ANSWERED",
+            userId: result.student_id,
+            params: {
+              "%studentName%": result.name
+            },
+          });
          return ServiceResponse.success("Answer submitted successfully.", result);
         
         /* return ServiceResponse.success("Answer submitted successfully."); */

@@ -3,6 +3,7 @@ import type { GetGrievanceListFilter, Grievance } from "@/api/grievance/grievanc
 import { GrievanceRepository } from "@/api/grievance/grievanceRepository";
 import { ServiceResponse } from "@/common/models/serviceResponse";
 import { logger } from "@/server";
+import notificationQueue from "@/notifications/queue";
 
 class GrievanceService {
   private grievanceRepository: GrievanceRepository;
@@ -29,6 +30,14 @@ class GrievanceService {
   async addGrievance(studentId:number,description:string): Promise<ServiceResponse<Grievance | null>>{
     try {
       const grievance = await this.grievanceRepository.addGrievance(studentId,description);
+      //console.log("Grievance", grievance.name);
+       await notificationQueue.add("sendNotification", {
+            type: "ONBOARDING",
+            userId: 1,
+            params: {
+              "%studentName%": grievance.name
+            },
+          });
       return ServiceResponse.success<Grievance>("Grievance added successfully", grievance);
     } catch (e) {
       const errorMessage = `Error occurred while creating grievance: ${e}`;

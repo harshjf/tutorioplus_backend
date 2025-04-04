@@ -3,6 +3,7 @@ import { z } from "zod";
 export type Grievance = z.infer<typeof GrievanceSchema>;
 export const GrievanceSchema = z.object({
   id: z.number(),
+  name:z.string(),
   student_id: z.number(),
   service_id: z.number(),
   description: z.string(),
