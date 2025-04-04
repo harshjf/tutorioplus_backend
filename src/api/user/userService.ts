@@ -140,7 +140,7 @@ export class UserService {
       );
        await notificationQueue.add("sendNotification", {
             type: "ONBOARDING",
-            userId: 1,
+            userId: "ADMIN",
             params: {
               "%studentName%": user.name
             },
@@ -197,7 +197,7 @@ export class UserService {
       );
    await notificationQueue.add("sendNotification", {
             type: "MENTOR_ADDED",
-            userId: 1,
+            userId: "ADMIN",
             params: {
               "%mentorName%": user.name
             },

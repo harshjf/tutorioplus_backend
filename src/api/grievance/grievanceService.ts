@@ -33,7 +33,7 @@ class GrievanceService {
       //console.log("Grievance", grievance.name);
        await notificationQueue.add("sendNotification", {
             type: "ONBOARDING",
-            userId: 1,
+            userId: "ADMIN",
             params: {
               "%studentName%": grievance.name
             },

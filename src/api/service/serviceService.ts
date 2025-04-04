@@ -54,7 +54,7 @@ export class ServiceService {
           const name=await this.serviceRepository.getUserName(request.body.studentId);
           await notificationQueue.add("sendNotification", {
             type: "SERVICE_ADDED",
-            userId: 1,
+            userId: "ADMIN",
             params: {
               "%userName%": name,
               "%serviceName%": service.service_type,
