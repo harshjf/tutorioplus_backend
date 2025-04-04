@@ -291,3 +291,17 @@ userRouter.get(
   authorize(["Admin"]),
   userController.getNotifications
 );
+
+userRegistry.registerPath({
+  method: "get",
+  path: "/users/payment-history/{id}",
+  tags: ["User"],
+  responses: createApiResponse(z.object({ message: z.string() }), "Success"),
+});
+
+userRouter.get(
+  "/payment-history/:id",
+  verifyToken,
+  authorize(["Student"]),
+  userController.getPaymentHistory
+);

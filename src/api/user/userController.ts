@@ -107,6 +107,11 @@ class UserController {
     const serviceResponse = await userService.getNotifications(userId, offset, limit);
     return handleServiceResponse(serviceResponse, res);
   };
+  public getPaymentHistory: RequestHandler = async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const serviceResponse = await userService.getPaymentHistory(Number(id));
+    return handleServiceResponse(serviceResponse, res);
+  };
   
 }
 

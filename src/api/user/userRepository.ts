@@ -383,5 +383,22 @@ export class UserRepository {
   
     return { total, notifications };
   }
+  async fetchPaymentHistory(studentId: number) {
+    const sql = `
+      SELECT 
+      ph.payment_id,
+      ph.amount,
+      TO_CHAR(ph.date, 'YYYY-MM-DD') AS date,
+      s.service_type AS service_name
+    FROM payment_history ph
+    LEFT JOIN session_based_services sbs ON ph.payment_id = sbs.payment_id
+    LEFT JOIN services s ON sbs.service_id = s.id
+    WHERE ph.student_id = $1 AND s.service_type != 'Others'
+    ORDER BY ph.date DESC;
+    `;
+  
+    const result = await query(sql, [studentId]);
+    return result;
+  }
   
 }

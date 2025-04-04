@@ -581,6 +581,20 @@ export class UserService {
       return ServiceResponse.failure("Failed to fetch notifications", null, StatusCodes.INTERNAL_SERVER_ERROR);
     }
   }
+  async getPaymentHistory(studentId: number): Promise<ServiceResponse<any>> {
+    try {
+      const payments = await this.userRepository.fetchPaymentHistory(studentId);
+      return ServiceResponse.success("Payment history retrieved", payments);
+    } catch (err) {
+      const errorMessage = `Error fetching payment history: ${(err as Error).message}`;
+      logger.error(errorMessage);
+      return ServiceResponse.failure(
+        "Failed to fetch payment history.",
+        null,
+        StatusCodes.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
   
   
 }
