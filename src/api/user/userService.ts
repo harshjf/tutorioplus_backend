@@ -115,7 +115,7 @@ export class UserService {
     firstPaymentDate: Date | null,
     address: string,
     phone: string,
-    countryCode:string
+    countryCode: string
   ): Promise<ServiceResponse<User | null>> {
     const role_id = 2;
     try {
@@ -138,13 +138,13 @@ export class UserService {
         phone,
         countryCode
       );
-       await notificationQueue.add("sendNotification", {
-            type: "ONBOARDING",
-            userId: "ADMIN",
-            params: {
-              "%studentName%": user.name
-            },
-          });
+      await notificationQueue.add("sendNotification", {
+        type: "ONBOARDING",
+        userId: user?.id,
+        params: {
+          "%studentName%": user.name,
+        },
+      });
       return ServiceResponse.success("User added successfully!", user);
     } catch (e) {
       const errorMessage = `Error during sign-up: ${e}`;
@@ -180,7 +180,7 @@ export class UserService {
         country,
         state,
         city,
-        countryCode
+        countryCode,
       } = req.body;
       const result = await this.userRepository.insertMentorMetaData(
         user?.id || 0,
@@ -195,13 +195,13 @@ export class UserService {
         cvPath,
         countryCode
       );
-   await notificationQueue.add("sendNotification", {
-            type: "MENTOR_ADDED",
-            userId: "ADMIN",
-            params: {
-              "%mentorName%": user.name
-            },
-          });
+      await notificationQueue.add("sendNotification", {
+        type: "MENTOR_ADDED",
+        recipientRole: "Admin",
+        params: {
+          "%mentorName%": user.name,
+        },
+      });
       return ServiceResponse.success("Mentor added successfully!", result);
     } catch (e) {
       const errorMessage = `Error during mentor sign-up: ${e}`;
@@ -237,9 +237,9 @@ export class UserService {
           type: "FORGOT_PASSWORD",
           userId: user.id,
           params: {
-            "%resetLink%": resetLink
+            "%resetLink%": resetLink,
           },
-        }); 
+        });
         return ServiceResponse.success("User found successfully!", user);
       }
     } catch (e) {
@@ -560,48 +560,74 @@ export class UserService {
         totalStudents,
         assignmentsAnswered,
         totalAssignments,
-        classesRequested
+        classesRequested,
       ] = await Promise.all([
         this.userRepository.getTotalStudents(),
         this.userRepository.getAssignmentsAnswered(),
         this.userRepository.getTotalAssignments(),
-        this.userRepository.getOnlineClassesRequested()
+        this.userRepository.getOnlineClassesRequested(),
       ]);
-  
+
       const result = {
         totalStudents,
         assignmentsAnswered,
         totalAssignments,
-        classesRequested
+        classesRequested,
       };
-  
+
       return ServiceResponse.success("Stats fetched successfully", result);
     } catch (e) {
       logger.error("Error fetching stats:", e);
-      return ServiceResponse.failure("Failed to fetch stats", null, StatusCodes.INTERNAL_SERVER_ERROR);
+      return ServiceResponse.failure(
+        "Failed to fetch stats",
+        null,
+        StatusCodes.INTERNAL_SERVER_ERROR
+      );
     }
   }
-  async getAssignmentActivity(range: "week" | "month" | "year"): Promise<ServiceResponse<any>> {
+  async getAssignmentActivity(
+    range: "week" | "month" | "year"
+  ): Promise<ServiceResponse<any>> {
     try {
       const data = await this.userRepository.getAssignmentActivity(range);
-  
-      return ServiceResponse.success("Assignment activity fetched successfully", data);
+
+      return ServiceResponse.success(
+        "Assignment activity fetched successfully",
+        data
+      );
     } catch (e) {
       logger.error("Error fetching assignment activity:", e);
-      return ServiceResponse.failure("Failed to fetch assignment activity", null, StatusCodes.INTERNAL_SERVER_ERROR);
+      return ServiceResponse.failure(
+        "Failed to fetch assignment activity",
+        null,
+        StatusCodes.INTERNAL_SERVER_ERROR
+      );
     }
   }
-  async getNotifications(userId: number, offset: number, limit: number): Promise<ServiceResponse<any>> {
+  async getNotifications(
+    userId: number,
+    offset: number,
+    limit: number
+  ): Promise<ServiceResponse<any>> {
     try {
-      const { total, notifications } = await this.userRepository.getNotificationsWithCount(userId, offset, limit);
-  
+      const { total, notifications } =
+        await this.userRepository.getNotificationsWithCount(
+          userId,
+          offset,
+          limit
+        );
+
       return ServiceResponse.success("Notifications fetched successfully", {
         total,
-        notifications
+        notifications,
       });
     } catch (e) {
       logger.error("Error fetching notifications:", e);
-      return ServiceResponse.failure("Failed to fetch notifications", null, StatusCodes.INTERNAL_SERVER_ERROR);
+      return ServiceResponse.failure(
+        "Failed to fetch notifications",
+        null,
+        StatusCodes.INTERNAL_SERVER_ERROR
+      );
     }
   }
   async getPaymentHistory(studentId: number): Promise<ServiceResponse<any>> {
@@ -609,7 +635,9 @@ export class UserService {
       const payments = await this.userRepository.fetchPaymentHistory(studentId);
       return ServiceResponse.success("Payment history retrieved", payments);
     } catch (err) {
-      const errorMessage = `Error fetching payment history: ${(err as Error).message}`;
+      const errorMessage = `Error fetching payment history: ${
+        (err as Error).message
+      }`;
       logger.error(errorMessage);
       return ServiceResponse.failure(
         "Failed to fetch payment history.",
@@ -623,7 +651,9 @@ export class UserService {
       const payments = await this.userRepository.fetchAllPaymentHistory();
       return ServiceResponse.success("All payment history retrieved", payments);
     } catch (err) {
-      const errorMessage = `Error fetching all payment history: ${(err as Error).message}`;
+      const errorMessage = `Error fetching all payment history: ${
+        (err as Error).message
+      }`;
       logger.error(errorMessage);
       return ServiceResponse.failure(
         "Failed to fetch payment history.",
@@ -632,8 +662,6 @@ export class UserService {
       );
     }
   }
-  
-  
 }
 
 export const userService = new UserService();

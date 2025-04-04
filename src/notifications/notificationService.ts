@@ -4,25 +4,24 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// Define Notification Params Type
 interface NotificationParams {
   [key: string]: string;
 }
 
-// Define Notification Job Type
 interface NotificationJob {
   type: string;
-  userId: number;
+  userId?: number;
+  recipientRole?: string;
   params: NotificationParams;
 }
 
 const sendNotification = async (
   type: string,
-  userId: number,
-  params: NotificationParams
+  userId?: number,
+  params: NotificationParams = {},
+  recipientRole?: string
 ): Promise<void> => {
   try {
-    // Fetch notification details for all channels linked to this notification type
     const notificationQuery = `
         SELECT n.id, n.name, t.subject, t.content, t.wildcards, c.name AS channel
         FROM notifications n
@@ -35,11 +34,30 @@ const sendNotification = async (
     const result = await query(notificationQuery, [type]);
     if (result.length === 0) throw new Error("Notification type not found");
 
-    // Loop through each channel assigned to this notification type
+    let users: { id: number; email: string }[] = [];
+
+    if (recipientRole) {
+      const userQuery = `SELECT u.id, u.email FROM users u JOIN roles r ON u.role_id = r.id WHERE r.role = $1`;
+      const result = await query(userQuery, [recipientRole]);
+      if (result.length === 0) {
+        console.warn(`No users found for role ${recipientRole}`);
+        return;
+      }
+      users = result;
+    } else if (userId) {
+      const userResult = await query(
+        "SELECT id, email FROM users WHERE id = $1",
+        [userId]
+      );
+      if (userResult.length === 0) throw new Error("User not found");
+      users = userResult;
+    } else {
+      throw new Error("No target user or role provided for notification.");
+    }
+
     for (const row of result) {
       const { id, subject, content, wildcards, channel } = row;
 
-      // Replace wildcards in the message
       let finalMessage = content;
       if (wildcards && Array.isArray(wildcards)) {
         wildcards.forEach((placeholder: string) => {
@@ -48,11 +66,17 @@ const sendNotification = async (
         });
       }
 
-      // Handle each channel accordingly
-      if (channel === "EMAIL") {
-        await sendEmailNotification(userId, subject, finalMessage);
-      } else if (channel === "NOTIFICATION") {
-        await storeSystemNotification(userId, id, subject, finalMessage);
+      for (const user of users) {
+        if (channel === "EMAIL") {
+          await sendEmailNotification(
+            user.id,
+            user.email,
+            subject,
+            finalMessage
+          );
+        } else if (channel === "NOTIFICATION") {
+          await storeSystemNotification(user.id, id, subject, finalMessage);
+        }
       }
     }
   } catch (error) {
@@ -62,17 +86,19 @@ const sendNotification = async (
 
 const sendEmailNotification = async (
   userId: number,
+  userEmail: string,
   subject: string,
   message: string
 ): Promise<void> => {
   try {
-    // Fetch user email
-    const userResult = await query("SELECT email FROM users WHERE id = $1", [
-      userId,
-    ]);
-    if (userResult.length === 0) throw new Error("User not found");
+    const notificationQuery = `SELECT * FROM notification_templates WHERE name = 'BASE_TEMPLATE'`;
+    const result = await query(notificationQuery);
+    if (result.length === 0)
+      throw new Error("Base notification template not found");
 
-    const userEmail = userResult[0].email;
+    const { id, subject, content, wildcards, channel } = result[0];
+
+    message = content.replace("%BODY%", message);
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
