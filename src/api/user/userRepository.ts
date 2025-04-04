@@ -428,4 +428,47 @@ export class UserRepository {
     const result=await query(sql,[id]);
     return result[0];
   }
+  async addDemoClass(data: {
+    name: string;
+    email: string;
+    phoneNumber: string;
+    course: string;
+    subject: string;
+    timeSlot: string;
+    education: string;
+    country: string;
+    message: string;
+  }) {
+    const sql = `
+      INSERT INTO demo_class_requests 
+      (name, email, phone_number, course, subject, time_slot, education, country, message) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    `;
+    const values = [
+      data.name,
+      data.email,
+      data.phoneNumber,
+      data.course,
+      data.subject,
+      data.timeSlot,
+      data.education,
+      data.country,
+      data.message
+    ];
+  
+    await query(sql, values);
+  }
+  async getDemoClassList() {
+    const sql = `
+      SELECT 
+        id, name, email, phone_number, course, subject, 
+        time_slot, education, country, message, created_at
+      FROM demo_class_requests
+      ORDER BY created_at DESC
+    `;
+  
+    const result = await query(sql);
+    return result;
+  }
+  
 }

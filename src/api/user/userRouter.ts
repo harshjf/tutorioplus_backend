@@ -320,3 +320,29 @@ userRouter.get(
   authorize(["Admin"]),
   userController.getAllPaymentHistory
 );
+
+userRegistry.registerPath({
+  method: "post",
+  path: "/users/demoClassRequest",
+  tags: ["User"],
+  responses: createApiResponse(z.object({ message: z.string() }), "Success"),
+});
+
+userRouter.post(
+  "/demoClassRequest",
+  userController.addDemoClass
+);
+
+userRegistry.registerPath({
+  method: "get",
+  path: "/users/democlasslist",
+  tags: ["User"],
+  responses: createApiResponse(z.object({ message: z.string() }), "Success"),
+});
+
+userRouter.get(
+  "/democlasslist",
+  verifyToken,
+  authorize(["Admin"]),
+  userController.getDemoClassList
+);

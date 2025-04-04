@@ -116,6 +116,16 @@ class UserController {
     const serviceResponse = await userService.getAllPaymentHistory();
     return handleServiceResponse(serviceResponse, res);
   };
+  public addDemoClass: RequestHandler = async (req: Request, res: Response) => {
+    const demoClassData = req.body;
+    const serviceResponse = await userService.addDemoClass(demoClassData);
+    return handleServiceResponse(serviceResponse, res);
+  };
+  public getDemoClassList: RequestHandler = async (req: Request, res: Response) => {
+    const serviceResponse = await userService.getDemoClassList();
+    return handleServiceResponse(serviceResponse, res);
+  };
+  
   
 }
 
