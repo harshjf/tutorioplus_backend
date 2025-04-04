@@ -400,5 +400,31 @@ export class UserRepository {
     const result = await query(sql, [studentId]);
     return result;
   }
+  async fetchAllPaymentHistory() {
+    const sql = `
+      SELECT 
+      ph.amount,
+      TO_CHAR(ph.date, 'YYYY-MM-DD') AS date,
+      s.service_type AS service_name,
+      u.name AS student_name,
+      u.email AS student_email,
+      u.id AS student_id,
+      ph.payment_id,
+      sm.phone_number AS student_phone
+      FROM payment_history ph
+    LEFT JOIN session_based_services sbs ON ph.payment_id = sbs.payment_id
+    LEFT JOIN services s ON sbs.service_id = s.id
+    LEFT JOIN users u ON ph.student_id = u.id
+    LEFT JOIN student_metadata sm ON u.id = sm.user_id
+    ORDER BY ph.date DESC;
+    `;
   
+    const result = await query(sql);
+    return result;
+  }
+  async getStudent (id:number){
+    const sql="SELECT name FROM users WHERE studentId=$1";
+    const result=await query(sql,[id]);
+    return result[0];
+  }
 }

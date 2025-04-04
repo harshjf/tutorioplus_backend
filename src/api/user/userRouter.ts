@@ -305,3 +305,18 @@ userRouter.get(
   authorize(["Student"]),
   userController.getPaymentHistory
 );
+
+
+userRegistry.registerPath({
+  method: "get",
+  path: "/users/payment-history",
+  tags: ["User"],
+  responses: createApiResponse(z.object({ message: z.string() }), "Success"),
+});
+
+userRouter.get(
+  "/payment-history/",
+  verifyToken,
+  authorize(["Admin"]),
+  userController.getAllPaymentHistory
+);

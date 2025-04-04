@@ -23,3 +23,6 @@ CREATE TABLE payment_history (
 	amount NUMERIC(10, 2) NOT NULL,
 	date TIMESTAMP DEFAULT NOW()
 );
+
+ALTER TABLE session_based_services
+ADD COLUMN payment_id TEXT;

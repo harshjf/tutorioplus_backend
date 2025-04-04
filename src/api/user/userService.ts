@@ -595,6 +595,20 @@ export class UserService {
       );
     }
   }
+  async getAllPaymentHistory(): Promise<ServiceResponse<any>> {
+    try {
+      const payments = await this.userRepository.fetchAllPaymentHistory();
+      return ServiceResponse.success("All payment history retrieved", payments);
+    } catch (err) {
+      const errorMessage = `Error fetching all payment history: ${(err as Error).message}`;
+      logger.error(errorMessage);
+      return ServiceResponse.failure(
+        "Failed to fetch payment history.",
+        null,
+        StatusCodes.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
   
   
 }
