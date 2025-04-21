@@ -269,9 +269,21 @@ export class UserRepository {
   }
   async approveTutor(status:string, id:number){
     //console.log("Approve id",status,id);
-    const sql="UPDATE mentor_metadata SET status=$1 WHERE user_id=$2 RETURNING *";
-    const result= await query(sql,[status,id]);
-    return result[0];
+    const sql = `
+    WITH updated AS (
+      UPDATE mentor_metadata
+      SET status = $1
+      WHERE user_id = $2
+      RETURNING *
+    )
+    SELECT 
+      updated.*, 
+      u.name AS mentor_name
+    FROM updated
+    JOIN users u ON updated.user_id = u.id;
+  `;
+  const result = await query(sql, [status, id]);
+  return result[0];
   }
   async updatePassword(id: number, newPassword: string) {
     console.log("id",id,newPassword);

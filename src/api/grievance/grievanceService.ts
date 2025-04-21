@@ -50,10 +50,18 @@ class GrievanceService {
       );
       //console.log("Grievance", grievance.name);
       await notificationQueue.add("sendNotification", {
+        type: "GRIEVANCE_ADDED_STUDENT",
+        userId: studentId,
+        params: {
+          "%studentName%": grievance.name
+        },
+      });
+      await notificationQueue.add("sendNotification", {
         type: "GRIEVANCE_ADDED",
         recipientRole: "Admin",
         params: {
           "%studentName%": grievance.name,
+          "%studentEmail%": grievance.email,
         },
       });
       return ServiceResponse.success<Grievance>(

@@ -33,30 +33,46 @@ export class ServiceRepository {
     docPath: string,
     description: string,
     dueDate: Date
-  ): Promise<DocumentBasedService> {
+  ) {
     let sql: string;
     let values: any[];
     if (subject !== null && subject !== undefined) {
       sql = `
+         WITH inserted AS (
         INSERT INTO document_based_services(
-            student_id, subject, service_id, doc_path, description, due_date
+          student_id, subject, service_id, doc_path, description, due_date
         )
-        VALUES($1, $2, $3, $4, $5, $6) 
-        RETURNING *;
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *
+      )
+      SELECT 
+        inserted.*, 
+        u.name AS student_name, 
+        u.email AS student_email
+      FROM inserted
+      JOIN users u ON inserted.student_id = u.id;
         `;
       values = [studentId, subject, serviceId, docPath, description, dueDate];
     } else {
       sql = `
+        WITH inserted AS (
         INSERT INTO document_based_services(
-            student_id, service_id, doc_path, description, due_date
+          student_id, service_id, doc_path, description, due_date
         )
-        VALUES($1, $2, $3, $4, $5) 
-        RETURNING *;
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING *
+      )
+      SELECT 
+        inserted.*, 
+        u.name AS student_name, 
+        u.email AS student_email
+      FROM inserted
+      JOIN users u ON inserted.student_id = u.id;
         `;
       values = [studentId, serviceId, docPath, description, dueDate];
     }
     const result = await query(sql, values);
-    return result;
+    return result[0];
     }      
     async addSessionBasedService(studentId:number,subject:string,serviceId:number,scheduledTime:string,duration:string,link:string, payment_id:string): Promise<SessionBasedService>{
         const sql="INSERT INTO session_based_services(student_id,subject,service_id,schedule_time,duration,link,payment_id) VALUES($1,$2,$3,$4,$5,$6,$7) returning *";
@@ -404,8 +420,8 @@ export class ServiceRepository {
         return result[0];
       }
     async getUserName (id:number){
-        const sql="SELECT name FROM users WHERE id=$1";
+        const sql="SELECT name,email FROM users WHERE id=$1";
         const result=await query(sql,[id]);
-        return result[0].name;
+        return result[0];
       }  
 }

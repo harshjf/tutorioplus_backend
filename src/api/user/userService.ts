@@ -145,6 +145,14 @@ export class UserService {
           "%studentName%": user.name,
         },
       });
+      await notificationQueue.add("sendNotification", {
+        type: "ADDED_STUDENT",
+        recipientRole: "Admin",
+        params: {
+          "%studentName%": user.name,
+          "%studentEmail%": user.email,
+        },
+      });
       return ServiceResponse.success("User added successfully!", user);
     } catch (e) {
       const errorMessage = `Error during sign-up: ${e}`;
@@ -196,10 +204,18 @@ export class UserService {
         countryCode
       );
       await notificationQueue.add("sendNotification", {
+        type: "MENTOR_ADDED_MENTOR",
+        userId: user?.id,
+        params: {
+          "%mentorName%": user.name
+        },
+      });
+      await notificationQueue.add("sendNotification", {
         type: "MENTOR_ADDED",
         recipientRole: "Admin",
         params: {
           "%mentorName%": user.name,
+          "%mentorEmail%": user.email,
         },
       });
       return ServiceResponse.success("Mentor added successfully!", result);
@@ -233,7 +249,7 @@ export class UserService {
 
         const resetLink = `https://tutorioplus.com/forgot-password?token=${token}`;
         //await sendResetPasswordEmail(user.email, resetLink);
-        await notificationQueue.add("sendNotification", {
+    await notificationQueue.add("sendNotification", {
           type: "FORGOT_PASSWORD",
           userId: user.id,
           params: {
@@ -496,6 +512,15 @@ export class UserService {
         ? "Tutor has been approved successfully."
         : "Tutor has been rejected successfully.";
 
+        {approve  && 
+          (await notificationQueue.add("sendNotification", {
+          type: "MENTOR_APPROVED",
+          userId:id,
+          params: {
+            "%mentorName%": result.mentor_name
+          },
+        })
+      )}
       return ServiceResponse.success(message, null);
     } catch (e) {
       const errorMessage = `Error while updating tutor approval status: ${e}`;

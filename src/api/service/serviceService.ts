@@ -63,7 +63,7 @@ export class ServiceService {
         const docPath = request.file ? request.file.path : null;
         const { studentId, subject, serviceId, description, dueDate } =
           request.body;
-        await this.serviceRepository.addDocumentBasedService(
+        const result=await this.serviceRepository.addDocumentBasedService(
           studentId,
           subject,
           serviceId,
@@ -71,6 +71,24 @@ export class ServiceService {
           description,
           dueDate
         );
+       
+        await notificationQueue.add("sendNotification", {
+        type: "ASSIGNMENT_SUBMITTED_ADMIN",
+        recipientRole: "Admin",
+        params: {
+          "%studentName%": result.student_name,
+          "%studentEmail%":result.student_email,
+        },
+      });
+
+      await notificationQueue.add("sendNotification", {
+        type: "ASSIGNMENT_SUBMITTED_STUDENT",
+        userId: studentId,
+        params: {
+          "%studentName%": result.student_name,
+        },
+      });
+
       } else if (service.category === "Session Based") {
         const {
           studentId,
@@ -90,6 +108,30 @@ export class ServiceService {
           link,
           payment_id
         );
+        const result = await this.serviceRepository.getUserName(
+          request.body.studentId
+        );
+
+        await notificationQueue.add("sendNotification", {
+          type: "SERVICE_ADDED_STUDENT",
+          userId: request.body.studentId,
+          params: {
+            "%studentName%": result.student_name,
+            "%serviceName%": service.service_type,
+            "%time%": scheduledTime,
+            "%duration%": duration,
+            "%topic%": subject,
+          },
+        });
+        await notificationQueue.add("sendNotification", {
+          type: "SERVICE_ADDED",
+          recipientRole: "Admin",
+          params: {
+            "%studentName%": result.name,
+            "%studentEmail%":result.email,
+            "%serviceName%": service.service_type,
+          },
+        });
       } else {
         return ServiceResponse.failure(
           "Invalid service category",
@@ -97,17 +139,8 @@ export class ServiceService {
           StatusCodes.BAD_REQUEST
         );
       }
-      const name = await this.serviceRepository.getUserName(
-        request.body.studentId
-      );
-      await notificationQueue.add("sendNotification", {
-        type: "SERVICE_ADDED",
-        recipientRole: "Admin",
-        params: {
-          "%userName%": name,
-          "%serviceName%": service.service_type,
-        },
-      });
+      
+      
       return ServiceResponse.success("Service added successfully", null);
     } catch (e) {
       logger.error(`Error adding service: ${e}`);
@@ -152,7 +185,7 @@ export class ServiceService {
       );
 
       await notificationQueue.add("sendNotification", {
-        type: "ADDED_OTHER_SERVICE_EMAIL_TEMPLATE",
+        type: "ADDED_OTHER_SERVICE",
         recipientRole: "Admin",
         params: {
           "%userName%": name,
@@ -303,7 +336,7 @@ export class ServiceService {
         answer_description,
         answerFilePath
       );
-      console.log("Result", result);
+      //console.log("Result", result);
       await notificationQueue.add("sendNotification", {
         type: "ASSIGNMENT_ANSWERED",
         userId: result.student_id,
