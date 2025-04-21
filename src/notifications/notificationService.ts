@@ -62,7 +62,7 @@ const sendNotification = async (
       if (wildcards && Array.isArray(wildcards)) {
         wildcards.forEach((placeholder: string) => {
           const key = placeholder;
-          finalMessage = finalMessage.replace(placeholder, params[key] || "");
+          finalMessage = finalMessage.replaceAll(placeholder, params[key] || "");
         });
       }
 
