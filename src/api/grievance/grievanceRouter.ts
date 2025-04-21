@@ -13,12 +13,12 @@ export const grievanceRouter: Router = express.Router();
 grievanceRegistry.register("Grievance", GrievanceSchema);
 
 grievanceRegistry.registerPath({
-  method: "get",
+  method: "post",
   path: "/grievances",
   tags: ["Grievance"],
   responses: createApiResponse(z.array(GrievanceSchema), "Success"),
 });
-grievanceRouter.get("/", verifyToken, authorize(["Admin"]),grievanceController.getGrievances);
+grievanceRouter.post("/", verifyToken, authorize(["Admin"]),grievanceController.getGrievances);
 
 grievanceRegistry.registerPath({
     method: "post",

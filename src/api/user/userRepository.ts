@@ -149,7 +149,8 @@ export class UserRepository {
     const sql = `
       SELECT 
         u.id, u.name,u.password, u.email, u.role_id, u.created_at, u.updated_at,
-        sm.country, sm.state, sm.city, sm.pincode, sm.address, sm.phone_number, 
+        sm.country, sm.state, sm.city, sm.pincode, sm.address, 
+        CONCAT('+', sm.country_code, '-', sm.phone_number) AS phone_number,
         sm.purpose_of_sign_in, sm.first_payment_date
       FROM users u
       LEFT JOIN student_metadata sm ON u.id = sm.user_id
@@ -166,6 +167,7 @@ export class UserRepository {
         u.name AS user_name,
         u.email AS user_email,
         u.role_id AS user_role_id,
+        mm.status,
         mm.id AS metadata_id,
         mm.phone_number,
         mm.address,
@@ -265,10 +267,10 @@ export class UserRepository {
     const result = await query(sql, params);
     return result[0];
   }
-  async approveTutor(approve:boolean, id:number){
-    console.log("Approve id",approve,id);
-    const sql="UPDATE mentor_metadata SET approve=$1 WHERE user_id=$2 RETURNING *";
-    const result= await query(sql,[approve,id]);
+  async approveTutor(status:string, id:number){
+    //console.log("Approve id",status,id);
+    const sql="UPDATE mentor_metadata SET status=$1 WHERE user_id=$2 RETURNING *";
+    const result= await query(sql,[status,id]);
     return result[0];
   }
   async updatePassword(id: number, newPassword: string) {

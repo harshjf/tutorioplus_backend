@@ -173,6 +173,7 @@ export class ServiceRepository {
         sbs.duration,
         sbs.subject,
         s.service_type AS service_name,
+        sbs.status,
         sbs.created_at,
         sbs.updated_at
     FROM session_based_services sbs

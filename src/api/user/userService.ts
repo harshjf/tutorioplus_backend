@@ -491,7 +491,7 @@ export class UserService {
   async approveTutor(req: any): Promise<ServiceResponse<null>> {
     const { approve, id } = req.body;
     try {
-      const result = await this.userRepository.approveTutor(approve, id);
+      const result = await this.userRepository.approveTutor(approve ? "Approved" : "Rejected", id);
       const message = approve
         ? "Tutor has been approved successfully."
         : "Tutor has been rejected successfully.";
