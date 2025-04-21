@@ -215,7 +215,7 @@ export class UserService {
         recipientRole: "Admin",
         params: {
           "%mentorName%": user.name,
-          "%mentorEmail%": user.email,
+          "%mentorEmail%": req.body.email,
         },
       });
       return ServiceResponse.success("Mentor added successfully!", result);
