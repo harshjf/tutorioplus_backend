@@ -216,7 +216,8 @@ export class UserRepository {
               mentor.cv_base64 = fileBuffer.toString('base64');
 
               // Extract MIME type
-              const mimeType = mime.lookup(mentor.cv) || 'application/octet-stream';
+              const cvPathString = String(mentor.cv);
+              const mimeType = mime.lookup(cvPathString) || 'application/octet-stream';
               mentor.cv_mimetype = mimeType;
 
           } catch (error) {
