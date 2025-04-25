@@ -476,7 +476,7 @@ export class UserRepository {
     const sql = `
       SELECT 
         id, name, email, phone_number, course, subject, 
-        time_slot, education, country, message, created_at
+        time_slot, education, country, status,message, created_at
       FROM demo_class_requests
       ORDER BY created_at DESC
     `;
@@ -485,4 +485,16 @@ export class UserRepository {
     return result;
   }
   
+  async updateDemoClassStatus(id: number, status: string, reason: string | null = null) {
+    const sql = `
+      UPDATE demo_class_requests
+      SET status = $1,
+          rejection_reason = $2
+      WHERE id = $3
+      RETURNING *
+    `;
+    
+    const result = await query(sql, [status, reason, id]);
+    return result[0];
+  }
 }

@@ -126,9 +126,11 @@ class UserController {
     return handleServiceResponse(serviceResponse, res);
   };
   
-  
+  public updateDemoClassStatus: RequestHandler = async (req: Request, res: Response) => {
+    //const { id, isApproved } = req.body;
+    const serviceResponse = await userService.updateDemoClassStatus(req.body);
+    return handleServiceResponse(serviceResponse, res);
+  };
 }
-
-
 
 export const userController = new UserController();

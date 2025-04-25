@@ -49,8 +49,7 @@ class ServiceController {
     };
 
     public getOtherServicesList: RequestHandler = async(req: Request, res:Response) =>{
-      const { filter, student_id } = req.body || {};
-      const serviceResponse = await serviceService.getOtherServicesList(filter, student_id);
+      const serviceResponse = await serviceService.getOtherServicesList();
       return handleServiceResponse(serviceResponse, res);
     };
 

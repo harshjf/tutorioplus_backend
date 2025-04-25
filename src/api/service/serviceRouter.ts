@@ -106,22 +106,19 @@ serviceRegistry.registerPath({
   tags: ["Services"],
   responses: createApiResponse(z.string(), "Success"),
 });
-
-  serviceRouter.post(
-    "/getOtherServicesList",
-    verifyToken,
-    authorize(["Admin","Student"]),
-    serviceController.getOtherServicesList
-    );
     
     serviceRegistry.registerPath({
-      method: "post",
+      method: "get",
       path: "/services/getOtherServicesList",
       tags: ["Services"],
       responses: createApiResponse(z.string(), "Success"),
     });
-  
 
+    serviceRouter.get(
+      "/getOtherServicesList",
+      serviceController.getOtherServicesList
+      );
+  
 serviceRegistry.registerPath({
   method: "post",
   path: "/services/submitAnswer",

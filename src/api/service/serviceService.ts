@@ -72,7 +72,7 @@ export class ServiceService {
           dueDate
         );
        
-        await notificationQueue.add("sendNotification", {
+        /* await notificationQueue.add("sendNotification", {
         type: "ASSIGNMENT_SUBMITTED_ADMIN",
         recipientRole: "Admin",
         params: {
@@ -87,7 +87,7 @@ export class ServiceService {
         params: {
           "%studentName%": result.student_name,
         },
-      });
+      }); */
 
       } else if (service.category === "Session Based") {
         const {
@@ -112,7 +112,7 @@ export class ServiceService {
           request.body.studentId
         );
 
-        await notificationQueue.add("sendNotification", {
+       /*  await notificationQueue.add("sendNotification", {
           type: "SERVICE_ADDED_STUDENT",
           userId: request.body.studentId,
           params: {
@@ -131,7 +131,7 @@ export class ServiceService {
             "%studentEmail%":result.email,
             "%serviceName%": service.service_type,
           },
-        });
+        }); */
       } else {
         return ServiceResponse.failure(
           "Invalid service category",
@@ -153,45 +153,15 @@ export class ServiceService {
   }
 
   async adhocServiceRequest(request: any) {
-    try {
-      const service = await this.serviceRepository.getServiceById(
-        parseInt(request.body.serviceId)
-      );
-      if (!service) {
-        return ServiceResponse.failure(
-          "Service not found",
-          null,
-          StatusCodes.NOT_FOUND
-        );
-      }
+    try {     
       const {
-        studentId,
         name,
-        subject,
-        serviceId,
-        scheduledTime,
-        duration,
-        link,
         payment_id,
       } = request.body;
-      await this.serviceRepository.addSessionBasedService(
-        studentId,
-        subject,
-        serviceId,
-        scheduledTime,
-        duration,
-        link,
+      await this.serviceRepository.addAdHocService(
+        name,
         payment_id
       );
-
-      await notificationQueue.add("sendNotification", {
-        type: "ADDED_OTHER_SERVICE",
-        recipientRole: "Admin",
-        params: {
-          "%userName%": name,
-          "%serviceName%": service.service_type,
-        },
-      });
       return ServiceResponse.success("Service added successfully", null);
     } catch (e) {
       logger.error(`Error adding service: ${e}`);
@@ -259,31 +229,23 @@ export class ServiceService {
     }
   }
 
-  async getOtherServicesList(
-    filter: GetAssignmentListFilter,
-    student_id: string
-  ) {
+  async getOtherServicesList() {
     try {
-      const assignments = await this.serviceRepository.getOtherServicesList(
-        filter,
-        student_id
-      );
-      if (assignments.length > 0) {
+      const result = await this.serviceRepository.getOtherServicesList();
+      if (result.length > 0) {
         return ServiceResponse.success<DocumentBasedService[]>(
-          "Assignments retrieved successfully.",
-          assignments
+          "Adhoc services retrieved successfully.",
+          result
         );
       } else {
         return ServiceResponse.success<DocumentBasedService[]>(
-          "No assignments available for the given criteria.",
-          assignments
-        );
+          "No Adhoc Services available.",result);
       }
     } catch (e) {
-      const errorMessage = `Error occured during fetching assignments: ${e}`;
+      const errorMessage = `Error occured during fetching adhoc services: ${e}`;
       logger.error(errorMessage);
       return ServiceResponse.failure(
-        "An error occurred during fetching assignments",
+        "An error occurred during fetching ad hoc services",
         null,
         StatusCodes.INTERNAL_SERVER_ERROR
       );
@@ -337,13 +299,13 @@ export class ServiceService {
         answerFilePath
       );
       //console.log("Result", result);
-      await notificationQueue.add("sendNotification", {
+      /* await notificationQueue.add("sendNotification", {
         type: "ASSIGNMENT_ANSWERED",
         userId: result.student_id,
         params: {
           "%studentName%": result.name,
         },
-      });
+      }); */
       return ServiceResponse.success("Answer submitted successfully.", result);
 
       /* return ServiceResponse.success("Answer submitted successfully."); */

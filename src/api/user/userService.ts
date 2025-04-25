@@ -138,7 +138,7 @@ export class UserService {
         phone,
         countryCode
       );
-      await notificationQueue.add("sendNotification", {
+      /* await notificationQueue.add("sendNotification", {
         type: "ONBOARDING",
         userId: user?.id,
         params: {
@@ -152,7 +152,7 @@ export class UserService {
           "%studentName%": user.name,
           "%studentEmail%": user.email,
         },
-      });
+      }); */
       return ServiceResponse.success("User added successfully!", user);
     } catch (e) {
       const errorMessage = `Error during sign-up: ${e}`;
@@ -203,7 +203,7 @@ export class UserService {
         cvPath,
         countryCode
       );
-      await notificationQueue.add("sendNotification", {
+      /* await notificationQueue.add("sendNotification", {
         type: "MENTOR_ADDED_MENTOR",
         userId: user?.id,
         params: {
@@ -217,7 +217,7 @@ export class UserService {
           "%mentorName%": user.name,
           "%mentorEmail%": user.email,
         },
-      });
+      }); */
       return ServiceResponse.success("Mentor added successfully!", result);
     } catch (e) {
       const errorMessage = `Error during mentor sign-up: ${e}`;
@@ -249,13 +249,13 @@ export class UserService {
 
         const resetLink = `https://tutorioplus.com/forgot-password?token=${token}`;
         //await sendResetPasswordEmail(user.email, resetLink);
-    await notificationQueue.add("sendNotification", {
+    /* await notificationQueue.add("sendNotification", {
           type: "FORGOT_PASSWORD",
           userId: user.id,
           params: {
             "%resetLink%": resetLink,
           },
-        });
+        }); */
         return ServiceResponse.success("User found successfully!", user);
       }
     } catch (e) {
@@ -512,7 +512,7 @@ export class UserService {
         ? "Tutor has been approved successfully."
         : "Tutor has been rejected successfully.";
 
-        {approve  && 
+       /*  {approve  && 
           (await notificationQueue.add("sendNotification", {
           type: "MENTOR_APPROVED",
           userId:id,
@@ -520,7 +520,7 @@ export class UserService {
             "%mentorName%": result.mentor_name
           },
         })
-      )}
+      )} */
       return ServiceResponse.success(message, null);
     } catch (e) {
       const errorMessage = `Error while updating tutor approval status: ${e}`;
@@ -710,6 +710,40 @@ export class UserService {
       logger.error("Error fetching demo class list:", e);
       return ServiceResponse.failure(
         "Failed to fetch demo class list",
+        null,
+        StatusCodes.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+  
+  async updateDemoClassStatus(data:any): Promise<ServiceResponse<any>> {
+    try {
+      const { id, isApproved, reason } = data;
+      const status = isApproved ? "Approved" : "Rejected";
+      
+      // Only pass rejection reason if status is Rejected
+      const result = await this.userRepository.updateDemoClassStatus(
+        id, 
+        status, 
+        !isApproved ? reason : null
+      );
+      
+      if (!result) {
+        return ServiceResponse.failure(
+          "Demo class request not found",
+          null,
+          StatusCodes.NOT_FOUND
+        );
+      }
+      
+      return ServiceResponse.success(
+        `Demo class request has been ${status.toLowerCase()} successfully`,
+        result
+      );
+    } catch (e) {
+      console.log("Error updating demo class status:", e);
+      return ServiceResponse.failure(
+        "Failed to update demo class status",
         null,
         StatusCodes.INTERNAL_SERVER_ERROR
       );

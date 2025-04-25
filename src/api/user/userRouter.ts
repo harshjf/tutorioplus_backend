@@ -306,7 +306,6 @@ userRouter.get(
   userController.getPaymentHistory
 );
 
-
 userRegistry.registerPath({
   method: "get",
   path: "/users/payment-history",
@@ -345,4 +344,25 @@ userRouter.get(
   verifyToken,
   authorize(["Admin"]),
   userController.getDemoClassList
+);
+
+userRegistry.registerPath({
+  method: "post",
+  path: "/users/updateDemoClassStatus",
+  tags: ["User"],
+  requestBody: createApiBody(
+    z.object({
+      id: z.number(),
+      isApproved: z.boolean(),
+      rejectionReason: z.string().optional()
+    })
+  ),
+  responses: createApiResponse(z.object({ message: z.string() }), "Success"),
+});
+
+userRouter.post(
+  "/updateDemoClassStatus",
+  verifyToken,
+  authorize(["Admin"]),
+  userController.updateDemoClassStatus
 );
