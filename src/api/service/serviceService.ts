@@ -72,7 +72,7 @@ export class ServiceService {
           dueDate
         );
        
-        /* await notificationQueue.add("sendNotification", {
+        await notificationQueue.add("sendNotification", {
         type: "ASSIGNMENT_SUBMITTED_ADMIN",
         recipientRole: "Admin",
         params: {
@@ -87,7 +87,7 @@ export class ServiceService {
         params: {
           "%studentName%": result.student_name,
         },
-      }); */
+      });
 
       } else if (service.category === "Session Based") {
         const {
@@ -112,7 +112,7 @@ export class ServiceService {
           request.body.studentId
         );
 
-       /*  await notificationQueue.add("sendNotification", {
+        await notificationQueue.add("sendNotification", {
           type: "SERVICE_ADDED_STUDENT",
           userId: request.body.studentId,
           params: {
@@ -131,7 +131,7 @@ export class ServiceService {
             "%studentEmail%":result.email,
             "%serviceName%": service.service_type,
           },
-        }); */
+        });
       } else {
         return ServiceResponse.failure(
           "Invalid service category",
@@ -299,13 +299,13 @@ export class ServiceService {
         answerFilePath
       );
       //console.log("Result", result);
-      /* await notificationQueue.add("sendNotification", {
+      await notificationQueue.add("sendNotification", {
         type: "ASSIGNMENT_ANSWERED",
         userId: result.student_id,
         params: {
           "%studentName%": result.name,
         },
-      }); */
+      });
       return ServiceResponse.success("Answer submitted successfully.", result);
 
       /* return ServiceResponse.success("Answer submitted successfully."); */

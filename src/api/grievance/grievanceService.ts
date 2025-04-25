@@ -49,7 +49,7 @@ class GrievanceService {
         description
       );
       //console.log("Grievance", grievance.name);
-     /*  await notificationQueue.add("sendNotification", {
+      await notificationQueue.add("sendNotification", {
         type: "GRIEVANCE_ADDED_STUDENT",
         userId: studentId,
         params: {
@@ -63,7 +63,7 @@ class GrievanceService {
           "%studentName%": grievance.name,
           "%studentEmail%": grievance.email,
         },
-      }); */
+      });
       return ServiceResponse.success<Grievance>(
         "Grievance added successfully",
         grievance
