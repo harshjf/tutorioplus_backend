@@ -690,6 +690,13 @@ export class UserService {
   async addDemoClass(demoData: any): Promise<ServiceResponse<null>> {
     try {
       await this.userRepository.addDemoClass(demoData);
+      await notificationQueue.add("sendNotification", {
+        type: "DEMO_CLASS_REQUEST_ADDED",
+        recipientRole: "Admin",
+        params: {
+          "%userName%": demoData.name,
+        },
+      });
       return ServiceResponse.success("Demo class submitted successfully", null);
     } catch (e) {
       logger.error("Error submitting demo class:", e);

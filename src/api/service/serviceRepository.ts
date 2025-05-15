@@ -350,8 +350,10 @@ export class ServiceRepository {
         const result = await query(sql, [serviceId]);
         return result[0] || null;
     }  
-    async updateStatus(id: number, isApproved:string) {
-        const status = isApproved === "true" ? "Approved" : "Rejected";
+    async updateStatus(id: number, isApproved: any) {
+        const isApprovedStr = String(isApproved).toLowerCase();
+        const status = isApprovedStr === "true" || isApproved === true ? "Approved" : "Rejected";
+        
         const sql = `
           UPDATE session_based_services
           SET status = $2
