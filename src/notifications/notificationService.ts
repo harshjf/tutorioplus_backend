@@ -5,7 +5,8 @@ import dotenv from "dotenv";
 dotenv.config();
 
 interface NotificationParams {
-  [key: string]: string;
+  [key: string]: string | undefined;
+  email?: string;
 }
 
 interface NotificationJob {
@@ -34,7 +35,7 @@ const sendNotification = async (
     const result = await query(notificationQuery, [type]);
     if (result.length === 0) throw new Error("Notification type not found");
 
-    let users: { id: number; email: string }[] = [];
+    let users: { id?: number; email: string }[] = [];
 
     if (recipientRole) {
       const userQuery = `SELECT u.id, u.email FROM users u JOIN roles r ON u.role_id = r.id WHERE r.role = $1`;
@@ -51,18 +52,23 @@ const sendNotification = async (
       );
       if (userResult.length === 0) throw new Error("User not found");
       users = userResult;
+    } else if (params.email) {
+      users = [{ email: params.email }];
     } else {
-      throw new Error("No target user or role provided for notification.");
+      throw new Error("No target user, role, or email provided for notification.");
     }
 
     for (const row of result) {
       const { id, subject, content, wildcards, channel } = row;
 
       let finalMessage = content;
-      if (wildcards && Array.isArray(wildcards)) {
-        wildcards.forEach((placeholder: string) => {
-          const key = placeholder;
-          finalMessage = finalMessage.replaceAll(placeholder, params[key] || "");
+      if (wildcards) {
+        const wildcardsArray = JSON.parse(wildcards);
+        //console.log('Parsed wildcards:', wildcardsArray);
+        
+        wildcardsArray.forEach((placeholder: string) => {
+          //console.log('Replacing placeholder:', placeholder, 'with value:', params[placeholder]);
+          finalMessage = finalMessage.replaceAll(placeholder, params[placeholder] || '');
         });
       }
 
@@ -74,7 +80,7 @@ const sendNotification = async (
             subject,
             finalMessage
           );
-        } else if (channel === "NOTIFICATION") {
+        } else if (channel === "NOTIFICATION" && user.id) {
           await storeSystemNotification(user.id, id, subject, finalMessage);
         }
       }
@@ -85,7 +91,7 @@ const sendNotification = async (
 };
 
 const sendEmailNotification = async (
-  userId: number,
+  userId: number | undefined,
   userEmail: string,
   subject: string,
   message: string
