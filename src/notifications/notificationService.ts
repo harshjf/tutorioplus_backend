@@ -62,13 +62,10 @@ const sendNotification = async (
       const { id, subject, content, wildcards, channel } = row;
 
       let finalMessage = content;
-      if (wildcards) {
-        const wildcardsArray = JSON.parse(wildcards);
-        //console.log('Parsed wildcards:', wildcardsArray);
-        
-        wildcardsArray.forEach((placeholder: string) => {
-          //console.log('Replacing placeholder:', placeholder, 'with value:', params[placeholder]);
-          finalMessage = finalMessage.replaceAll(placeholder, params[placeholder] || '');
+      if (wildcards && Array.isArray(wildcards)) {
+        wildcards.forEach((placeholder: string) => {
+          const key = placeholder;
+          finalMessage = finalMessage.replaceAll(placeholder, params[key] || "");
         });
       }
 
