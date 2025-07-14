@@ -74,9 +74,18 @@ export class ServiceRepository {
     const result = await query(sql, values);
     return result[0];
     }      
-    async addSessionBasedService(studentId:number,subject:string,serviceId:number,scheduledTime:string,duration:string,link:string, payment_id:string): Promise<SessionBasedService>{
-        const sql="INSERT INTO session_based_services(student_id,subject,service_id,schedule_time,duration,link,payment_id) VALUES($1,$2,$3,$4,$5,$6,$7) returning *";
-        const result=await query(sql,[studentId,subject,serviceId,scheduledTime,duration,link,payment_id]);
+    async addSessionBasedService(
+      studentId: number,
+      subject: string,
+      serviceId: number,
+      scheduledTime: string,
+      duration: string,
+      link: string,
+      payment_id: string,
+      countryCode: string
+    ): Promise<SessionBasedService> {
+        const sql = "INSERT INTO session_based_services(student_id, subject, service_id, schedule_time, duration, link, payment_id, country_code) VALUES($1, $2, $3, $4, $5, $6, $7, $8) returning *";
+        const result = await query(sql, [studentId, subject, serviceId, scheduledTime, duration, link, payment_id, countryCode]);
         return result;
     }
     async addAdHocService(name:string, payment_id:string): Promise<SessionBasedService>{
@@ -196,7 +205,8 @@ export class ServiceRepository {
         s.service_type AS service_name,
         sbs.status,
         sbs.created_at,
-        sbs.updated_at
+        sbs.updated_at,
+        sbs.country_code
     FROM session_based_services sbs
     JOIN users u ON sbs.student_id = u.id
     JOIN student_metadata sm ON sm.user_id = u.id

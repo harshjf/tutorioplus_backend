@@ -512,15 +512,24 @@ export class UserService {
         ? "Tutor has been approved successfully."
         : "Tutor has been rejected successfully.";
 
-        {approve  && 
-          (await notificationQueue.add("sendNotification", {
+      if (approve) {
+        await notificationQueue.add("sendNotification", {
           type: "MENTOR_APPROVED",
-          userId:id,
+          userId: id,
           params: {
             "%mentorName%": result.mentor_name
           },
-        })
-      )}
+        });
+      } else {
+        await notificationQueue.add("sendNotification", {
+          type: "MENTOR_REJECTED",
+          userId: id,
+          params: {
+            "%tutorName%": result.mentor_name
+          },
+        });
+      }
+
       return ServiceResponse.success(message, null);
     } catch (e) {
       const errorMessage = `Error while updating tutor approval status: ${e}`;
