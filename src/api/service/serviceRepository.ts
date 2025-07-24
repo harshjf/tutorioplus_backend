@@ -86,10 +86,10 @@ export class ServiceRepository {
       duration: string,
       link: string,
       payment_id: string,
-      countryCode: string
+      timeZone: string
     ): Promise<SessionBasedService> {
-        const sql = "INSERT INTO session_based_services(student_id, subject, service_id, schedule_time, duration, link, payment_id, country_code) VALUES($1, $2, $3, $4, $5, $6, $7, $8) returning *";
-        const result = await query(sql, [studentId, subject, serviceId, scheduledTime, duration, link, payment_id, countryCode]);
+        const sql = "INSERT INTO session_based_services(student_id, subject, service_id, schedule_time, duration, link, payment_id, timezone) VALUES($1, $2, $3, $4, $5, $6, $7, $8) returning *";
+        const result = await query(sql, [studentId, subject, serviceId, scheduledTime, duration, link, payment_id, timeZone]);
         return result;
     }
     async addAdHocService(name:string, payment_id:string): Promise<SessionBasedService>{

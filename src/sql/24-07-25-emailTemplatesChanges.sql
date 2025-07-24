@@ -162,3 +162,9 @@ FROM notifications n
 JOIN notification_templates t ON t.name = 'CONTACT_FORM_EMAIL_TEMPLATE'
 JOIN notification_channels c ON c.name = 'EMAIL'
 WHERE n.name = 'CONTACT_FORM_SUBMISSION';
+
+ALTER TABLE session_based_services
+DROP COLUMN country_code;
+
+ALTER TABLE session_based_services
+ADD COLUMN timezone VARCHAR(50);

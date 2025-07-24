@@ -98,7 +98,7 @@ export class ServiceService {
           duration,
           link,
           payment_id,
-          countryCode,
+          timeZone,
         } = request.body;
         await this.serviceRepository.addSessionBasedService(
           studentId,
@@ -108,7 +108,7 @@ export class ServiceService {
           duration,
           link,
           payment_id,
-          countryCode
+          timeZone
         );
         const result = await this.serviceRepository.getUserName(
           request.body.studentId
