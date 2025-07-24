@@ -90,20 +90,29 @@ export class GrievanceRepository {
   async addGrievance(studentId:number,description:string) {
     const sql = `
       WITH inserted AS (
-        INSERT INTO grievances (student_id, description)
-        VALUES ($1, $2)
-        RETURNING *
-    )
-    SELECT inserted.*, u.name AS name, u.email AS email
+            INSERT INTO grievances (student_id, description)
+            VALUES ($1, $2)
+            RETURNING *
+      )
+    SELECT 
+      inserted.*, 
+      u.name AS name, 
+      u.email AS email,
+      sm.country AS country
     FROM inserted
-    JOIN users u ON u.id = inserted.student_id;
-    `;
+    JOIN users u ON u.id = inserted.student_id
+    LEFT JOIN student_metadata sm ON sm.user_id = u.id;
+  `;
     const values = [studentId, description];
     const result = await query(sql, values);
     return result[0];
   }
   async getGrievanceById(grievanceId: number): Promise<Grievance | null> {
-    const sql = `SELECT * FROM grievances WHERE id = $1 AND active = TRUE`;
+    const sql = `SELECT g.*, u.name AS student_name
+FROM grievances g
+JOIN users u ON u.id = g.student_id
+WHERE g.id = $1 AND g.active = TRUE
+`;
     const result = await query(sql, [grievanceId]);
     return result[0];
   }

@@ -150,10 +150,10 @@ export class UserService {
         recipientRole: "Admin",
         params: {
           "%studentName%": user.name,
-          "%studentEmail%": user.email,
+          "%country%": country,
         },
       });
-      return ServiceResponse.success("User added successfully!", user);
+      return ServiceResponse.success("User added successfully!",user);
     } catch (e) {
       const errorMessage = `Error during sign-up: ${e}`;
       logger.error(errorMessage);
@@ -749,8 +749,6 @@ export class UserService {
     try {
       const { id, isApproved, reason } = data;
       const status = isApproved ? "Approved" : "Rejected";
-      
-      // Only pass rejection reason if status is Rejected
       const result = await this.userRepository.updateDemoClassStatus(
         id, 
         status, 
@@ -764,7 +762,19 @@ export class UserService {
           StatusCodes.NOT_FOUND
         );
       }
-      
+      if(isApproved){
+        //send notification
+         await notificationQueue.add("sendNotification", {
+        type: "DEMO_CLASS_REQUEST_ACCEPTED",
+        params: {
+          email: result.email,
+           "%studentName%":result.name,
+           "%time%":result.time_slot,
+           "%duration%":"30Min",
+           "%subject%":result.subject
+        },
+      });
+      }
       return ServiceResponse.success(
         `Demo class request has been ${status.toLowerCase()} successfully`,
         result

@@ -15,6 +15,7 @@ import { serviceRouter } from "./api/service/serviceRouter";
 import { faqRouter } from "./api/faq/faqRouter";
 import { grievanceRouter } from "./api/grievance/grievanceRouter";
 import { newsAndAnnouncementRouter } from "./api/news/newsAndAnnouncementRouter";
+import  contactRouter  from "./api/contact/contactRouter";
 
 const logger = pino({ name: "server start" });
 const app: Express = express();
@@ -54,8 +55,8 @@ app.use("/api/users", userRouter);
 app.use("/api/services", serviceRouter);
 app.use("/api/faqs", faqRouter);
 app.use("/api/grievances", grievanceRouter);
-app.use("/api/newsandannouncements", newsAndAnnouncementRouter);
-// Swagger UI
+app.use("/api/newsandannouncements", newsAndAnnouncementRouter);// Swagger UI
+app.use("/api/contact", contactRouter);
 app.use("/api/docs", openAPIRouter);
 
 // Error handlers

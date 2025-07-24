@@ -48,9 +48,11 @@ export class ServiceRepository {
       SELECT 
         inserted.*, 
         u.name AS student_name, 
-        u.email AS student_email
+        u.email AS student_email,
+        sm.country AS student_country
       FROM inserted
-      JOIN users u ON inserted.student_id = u.id;
+      JOIN users u ON inserted.student_id = u.id
+      LEFT JOIN student_metadata sm ON u.id = sm.user_id;
         `;
       values = [studentId, subject, serviceId, docPath, description, dueDate];
     } else {
@@ -62,12 +64,14 @@ export class ServiceRepository {
         VALUES ($1, $2, $3, $4, $5)
         RETURNING *
       )
-      SELECT 
+     SELECT 
         inserted.*, 
         u.name AS student_name, 
-        u.email AS student_email
+        u.email AS student_email,
+        sm.country AS student_country
       FROM inserted
-      JOIN users u ON inserted.student_id = u.id;
+      JOIN users u ON inserted.student_id = u.id
+      LEFT JOIN student_metadata sm ON u.id = sm.user_id;
         `;
       values = [studentId, serviceId, docPath, description, dueDate];
     }
@@ -384,8 +388,9 @@ export class ServiceRepository {
         return result[0];
       }
     async getUserName (id:number){
-        const sql="SELECT name,email FROM users WHERE id=$1";
+        const sql="SELECT name,email,sm.country FROM users u LEFT JOIN student_metadata sm ON u.id = sm.user_id WHERE u.id=$1";
         const result=await query(sql,[id]);
         return result[0];
       }  
+
 }

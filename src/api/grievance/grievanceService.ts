@@ -62,6 +62,7 @@ class GrievanceService {
         params: {
           "%studentName%": grievance.name,
           "%studentEmail%": grievance.email,
+          "%country%":grievance.country
         },
       });
       return ServiceResponse.success<Grievance>(
@@ -118,6 +119,13 @@ class GrievanceService {
       }
 
       await this.grievanceRepository.markAsResolved(grievanceId);
+        await notificationQueue.add("sendNotification", {
+        type: "GRIEVANCE_RESOLVED",
+        userId: grievanceExists.student_id,
+        params: {
+          "%studentName%": grievanceExists.student_name
+        },
+      });
       return ServiceResponse.success(
         "Grievance marked as resolved successfully",
         null
