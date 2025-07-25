@@ -210,7 +210,7 @@ export class ServiceRepository {
         sbs.status,
         sbs.created_at,
         sbs.updated_at,
-        sbs.country_code
+        sbs.timezone
     FROM session_based_services sbs
     JOIN users u ON sbs.student_id = u.id
     JOIN student_metadata sm ON sm.user_id = u.id
