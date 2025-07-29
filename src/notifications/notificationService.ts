@@ -55,7 +55,9 @@ const sendNotification = async (
     } else if (params.email) {
       users = [{ email: params.email }];
     } else {
-      throw new Error("No target user, role, or email provided for notification.");
+      throw new Error(
+        "No target user, role, or email provided for notification."
+      );
     }
 
     for (const row of result) {
@@ -66,14 +68,14 @@ const sendNotification = async (
       if (wildcards && Array.isArray(wildcards)) {
         wildcards.forEach((placeholder: string) => {
           const key = placeholder;
-          finalMessage = finalMessage.replaceAll(placeholder, params[key] || "");
-
-      if (wildcards) {
-        const wildcardsArray = JSON.parse(wildcards);
-        wildcardsArray.forEach((placeholder: string) => {
-          const value = params[placeholder] || '';
-          finalMessage = finalMessage.replaceAll(placeholder, value);
-          finalSubject = finalSubject.replaceAll(placeholder, value);
+          finalMessage = finalMessage.replaceAll(
+            placeholder,
+            params[key] || ""
+          );
+          finalSubject = finalSubject.replaceAll(
+            placeholder,
+            params[key] || ""
+          );
         });
       }
 
@@ -86,7 +88,12 @@ const sendNotification = async (
             finalMessage
           );
         } else if (channel === "NOTIFICATION" && user.id) {
-          await storeSystemNotification(user.id, id, finalSubject, finalMessage);
+          await storeSystemNotification(
+            user.id,
+            id,
+            finalSubject,
+            finalMessage
+          );
         }
       }
     }
