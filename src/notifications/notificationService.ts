@@ -61,11 +61,19 @@ const sendNotification = async (
     for (const row of result) {
       const { id, subject, content, wildcards, channel } = row;
 
+      let finalSubject = subject;
       let finalMessage = content;
       if (wildcards && Array.isArray(wildcards)) {
         wildcards.forEach((placeholder: string) => {
           const key = placeholder;
           finalMessage = finalMessage.replaceAll(placeholder, params[key] || "");
+
+      if (wildcards) {
+        const wildcardsArray = JSON.parse(wildcards);
+        wildcardsArray.forEach((placeholder: string) => {
+          const value = params[placeholder] || '';
+          finalMessage = finalMessage.replaceAll(placeholder, value);
+          finalSubject = finalSubject.replaceAll(placeholder, value);
         });
       }
 
@@ -74,11 +82,11 @@ const sendNotification = async (
           await sendEmailNotification(
             user.id,
             user.email,
-            subject,
+            finalSubject,
             finalMessage
           );
         } else if (channel === "NOTIFICATION" && user.id) {
-          await storeSystemNotification(user.id, id, subject, finalMessage);
+          await storeSystemNotification(user.id, id, finalSubject, finalMessage);
         }
       }
     }
@@ -100,7 +108,6 @@ const sendEmailNotification = async (
       throw new Error("Base notification template not found");
 
     const { content } = result[0];
-
     message = content.replace("%BODY%", message);
 
     const transporter = nodemailer.createTransport({

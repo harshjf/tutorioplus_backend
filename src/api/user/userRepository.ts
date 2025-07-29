@@ -404,7 +404,7 @@ export class UserRepository {
       SELECT 
       ph.payment_id,
       ph.amount,
-      TO_CHAR(ph.date, 'YYYY-MM-DD') AS date,
+      TO_CHAR(ph.date, 'DD-MM-YYYY') AS date,
       s.service_type AS service_name
     FROM payment_history ph
     LEFT JOIN session_based_services sbs ON ph.payment_id = sbs.payment_id
@@ -414,7 +414,14 @@ export class UserRepository {
     `;
   
     const result = await query(sql, [studentId]);
-    return result;
+return result.map((row: any) => ({
+  ...row,
+  amount: new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+  }).format(row.amount),
+}));
   }
   async fetchAllPaymentHistory() {
     const sql = `

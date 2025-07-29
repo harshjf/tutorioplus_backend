@@ -71,13 +71,13 @@ export class ServiceService {
           description,
           dueDate
         );
-       
         await notificationQueue.add("sendNotification", {
         type: "ASSIGNMENT_SUBMITTED_ADMIN",
         recipientRole: "Admin",
         params: {
           "%studentName%": result.student_name,
           "%studentEmail%":result.student_email,
+          "%country%":result.student_country
         },
       });
 
@@ -98,7 +98,7 @@ export class ServiceService {
           duration,
           link,
           payment_id,
-          countryCode,
+          timeZone,
         } = request.body;
         await this.serviceRepository.addSessionBasedService(
           studentId,
@@ -108,12 +108,11 @@ export class ServiceService {
           duration,
           link,
           payment_id,
-          countryCode
+          timeZone
         );
         const result = await this.serviceRepository.getUserName(
           request.body.studentId
         );
-
         await notificationQueue.add("sendNotification", {
           type: "SERVICE_ADDED_STUDENT",
           userId: request.body.studentId,
@@ -131,7 +130,8 @@ export class ServiceService {
           params: {
             "%studentName%": result.name,
             "%studentEmail%":result.email,
-            "%serviceName%": service.service_type,
+            "%country%":result.country,
+            "%serviceName%": service.service_type,            
           },
         });
       } else {
@@ -140,9 +140,7 @@ export class ServiceService {
           null,
           StatusCodes.BAD_REQUEST
         );
-      }
-      
-      
+      }     
       return ServiceResponse.success("Service added successfully", null);
     } catch (e) {
       logger.error(`Error adding service: ${e}`);
