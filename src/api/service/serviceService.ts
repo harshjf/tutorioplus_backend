@@ -113,27 +113,49 @@ export class ServiceService {
         const result = await this.serviceRepository.getUserName(
           request.body.studentId
         );
-        await notificationQueue.add("sendNotification", {
-          type: "SERVICE_ADDED_STUDENT",
-          userId: request.body.studentId,
-          params: {
-            "%studentName%": result.student_name,
-            "%serviceName%": service.service_type,
-            "%time%": scheduledTime,
-            "%duration%": duration,
-            "%topic%": subject,
-          },
-        });
-        await notificationQueue.add("sendNotification", {
-          type: "SERVICE_ADDED",
-          recipientRole: "Admin",
-          params: {
-            "%studentName%": result.name,
-            "%studentEmail%":result.email,
-            "%country%":result.country,
-            "%serviceName%": service.service_type,            
-          },
-        });
+        //console.log("result", result);
+         if (service.service_type.includes("Counselling")) {
+          await notificationQueue.add("sendNotification", {
+            type: "COUNSELLING_REQUEST_ADDED_STUDENT",
+            userId: request.body.studentId,
+            params: {
+              "%studentName%": result.name
+            },
+          });
+          await notificationQueue.add("sendNotification", {
+            type: "COUNSELLING_REQUEST_ADDED",
+            userId: request.body.studentId,
+            params: {
+              "%studentName%": result.name,
+              "%country%": result.country
+            },
+          });
+          
+        } else {
+          await notificationQueue.add("sendNotification", {
+            type: "SERVICE_ADDED_STUDENT",
+            userId: request.body.studentId,
+            params: {
+              "%studentName%": result.student_name,
+              "%serviceName%": service.service_type.replace(" Request", ""), 
+              "%time%": scheduledTime.split('T')[1],
+              "%duration%": duration.toString().includes('Min') ? duration : `${duration}Min`,
+              "%topic%": subject,
+            },
+          });
+          await notificationQueue.add("sendNotification", {
+            type: "SERVICE_ADDED",
+            recipientRole: "Admin",
+            params: {
+              "%studentName%": result.name,
+              "%studentEmail%":result.email,
+              "%country%":result.country,
+              "%serviceName%": service.service_type.replace(" Request", ""),            
+            },
+          }); 
+        }
+         
+        
       } else {
         return ServiceResponse.failure(
           "Invalid service category",

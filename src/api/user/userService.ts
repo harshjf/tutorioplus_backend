@@ -699,13 +699,14 @@ export class UserService {
   async addDemoClass(demoData: any): Promise<ServiceResponse<null>> {
     try {
       await this.userRepository.addDemoClass(demoData);
-      
+      //console.log("demoData", demoData);
       // Send notification to admin
-      await notificationQueue.add("sendNotification", {
+       await notificationQueue.add("sendNotification", {
         type: "DEMO_CLASS_REQUEST_ADDED",
         recipientRole: "Admin",
         params: {
-          "%userName%": demoData.name,
+          "%studentName%": demoData.name,
+          "%country%": demoData.country
         },
       });
 
@@ -714,10 +715,12 @@ export class UserService {
       await notificationQueue.add("sendNotification", {
         type: "DEMO_CLASS_REQUEST_STUDENT",
         params: {
-          email: demoData.email,
-          "%studentName%": demoData.name 
+          "%studentName%": demoData.name,
+          "%time%": demoData.time_slot,
+          "%duration%": "30Min",
+          "%topic%": demoData.subject
         },
-      });
+      }); 
 
       return ServiceResponse.success("Demo class submitted successfully", null);
     } catch (e) {
