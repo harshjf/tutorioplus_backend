@@ -119,6 +119,16 @@ export class UserService {
   ): Promise<ServiceResponse<User | null>> {
     const role_id = 2;
     try {
+      // Check if email already exists
+      const existingUser = await this.userRepository.findByEmailAsync(email);
+      if (existingUser) {
+        return ServiceResponse.failure(
+          "Email already exists. Please use a different email address.",
+          null,
+          StatusCodes.CONFLICT
+        );
+      }
+
       const hashedPassword = await bcrypt.hash(password, 10);
       const user = await this.userRepository.signUp(
         name,
@@ -153,7 +163,7 @@ export class UserService {
           "%country%": country,
         },
       });
-      return ServiceResponse.success("User added successfully!",user);
+      return ServiceResponse.success("User added successfully!", user);
     } catch (e) {
       const errorMessage = `Error during sign-up: ${e}`;
       logger.error(errorMessage);

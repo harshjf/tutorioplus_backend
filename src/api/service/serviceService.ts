@@ -98,7 +98,7 @@ export class ServiceService {
           duration,
           link,
           payment_id,
-          timeZone,
+          countryCode,
         } = request.body;
         await this.serviceRepository.addSessionBasedService(
           studentId,
@@ -108,12 +108,11 @@ export class ServiceService {
           duration,
           link,
           payment_id,
-          timeZone
+          countryCode
         );
         const result = await this.serviceRepository.getUserName(
           request.body.studentId
         );
-        //console.log("result", result);
          if (service.service_type.includes("Counselling")) {
           await notificationQueue.add("sendNotification", {
             type: "COUNSELLING_REQUEST_ADDED_STUDENT",
