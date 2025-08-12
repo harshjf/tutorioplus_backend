@@ -1,36 +1,44 @@
-import type { City, Country, getMentorFilter, getStudentFilter, State, User } from "@/api/user/userModel";
-import {query} from "@/common/models/database";
+import type {
+  City,
+  Country,
+  getMentorFilter,
+  getStudentFilter,
+  State,
+  User,
+} from "@/api/user/userModel";
+import { query } from "@/common/models/database";
 import { stat } from "fs";
-import fs from 'fs/promises';
+import fs from "fs/promises";
 import mime from "mime";
 
 export class UserRepository {
-  async findAllAsync(){
+  async findAllAsync() {
     const sql = "SELECT * FROM users WHERE active=true";
-    const result= await query(sql);
+    const result = await query(sql);
     return result;
   }
-  async isTokenValid(token:string){
-    const sql="SELECT * FROM reset_password WHERE token=$1";
-    const result=await query(sql,[token]);
+  async isTokenValid(token: string) {
+    const sql = "SELECT * FROM reset_password WHERE token=$1";
+    const result = await query(sql, [token]);
     return result[0];
   }
-  async findByEmailAsync(email:string){
-    const sql=`SELECT u.*, r.role 
+  async findByEmailAsync(email: string) {
+    const sql = `SELECT u.*, r.role 
         FROM users u
         JOIN roles r ON u.role_id = r.id
         WHERE u.email = $1 AND u.active = true`;
-    const result=await query(sql,[email]);
+    const result = await query(sql, [email]);
     return result[0];
   }
-  async signUp(name:string,email:string,password:string,role_id:number){
-    const sql="INSERT INTO users (role_id, name, email, password) VALUES ($1, $2, $3, $4) RETURNING *;"
-    const result=await query(sql,[role_id,name,email,password]);
+  async signUp(name: string, email: string, password: string, role_id: number) {
+    const sql =
+      "INSERT INTO users (role_id, name, email, password) VALUES ($1, $2, $3, $4) RETURNING *;";
+    const result = await query(sql, [role_id, name, email, password]);
     return result[0];
   }
-  async getSubjects(){
-    const sql="SELECT * FROM subjects ";
-    const result=await query(sql);
+  async getSubjects() {
+    const sql = "SELECT * FROM subjects ";
+    const result = await query(sql);
     return result;
   }
   async getStudents(filter: getStudentFilter) {
@@ -57,11 +65,11 @@ export class UserRepository {
       JOIN 
         student_metadata sm ON u.id = sm.user_id
       WHERE 
-        u.active = true`; 
-  
+        u.active = true`;
+
     const conditions: string[] = [];
     const values: any[] = [];
-  
+
     if (filter) {
       if (filter.email) {
         conditions.push(`u.email = $${values.length + 1}`);
@@ -76,51 +84,100 @@ export class UserRepository {
         values.push(`${filter.phone_number}`);
       }
     }
-  
+
     if (conditions.length > 0) {
-      sql += ` AND ` + conditions.join(' AND ');
+      sql += ` AND ` + conditions.join(" AND ");
     }
-  
+
     /* console.log("Values", values); */
     const result = await query(sql, values);
- /*    console.log("Query", sql);
+    /*    console.log("Query", sql);
     console.log("result", result); */
     return result;
-  }  
-  async insertMetaData(id:number,country:string,state:string,city:string,pinCode:string,purposeOfSignIn:string,firstPaymentDate:Date | null,address:string,phone:string,countryCode:string){
-    const sql="INSERT INTO student_metadata(user_id,country,state,city,pincode,purpose_of_sign_in,first_payment_date,address,phone_number,country_code) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)";
-    console.log("Country,state,city")
-    const result=await query(sql,[id,country,state,city,pinCode,purposeOfSignIn,firstPaymentDate,address,phone,countryCode]);
+  }
+  async insertMetaData(
+    id: number,
+    country: string,
+    state: string,
+    city: string,
+    pinCode: string,
+    purposeOfSignIn: string,
+    firstPaymentDate: Date | null,
+    address: string,
+    phone: string,
+    countryCode: string
+  ) {
+    const sql =
+      "INSERT INTO student_metadata(user_id,country,state,city,pincode,purpose_of_sign_in,first_payment_date,address,phone_number,country_code) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)";
+    console.log("Country,state,city");
+    const result = await query(sql, [
+      id,
+      country,
+      state,
+      city,
+      pinCode,
+      purposeOfSignIn,
+      firstPaymentDate,
+      address,
+      phone,
+      countryCode,
+    ]);
     return result;
   }
-  async insertMentorMetaData(id:number,phoneNumber:string,address:string,qualification:string,teachingExperience:number,jobType:string,country:string,state:string,city:string,cvPath:string,countryCode:string){
-    const sql="INSERT INTO mentor_metadata(user_id,phone_number,address,qualification,teaching_experience,job_type,cv,country,state,city,country_code) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *";
-    const result=await query(sql,[id,phoneNumber,address,qualification,teachingExperience,jobType,cvPath,country,state,city,countryCode]);
+  async insertMentorMetaData(
+    id: number,
+    phoneNumber: string,
+    address: string,
+    qualification: string,
+    teachingExperience: number,
+    jobType: string,
+    country: string,
+    state: string,
+    city: string,
+    cvPath: string,
+    countryCode: string
+  ) {
+    const sql =
+      "INSERT INTO mentor_metadata(user_id,phone_number,address,qualification,teaching_experience,job_type,cv,country,state,city,country_code) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *";
+    const result = await query(sql, [
+      id,
+      phoneNumber,
+      address,
+      qualification,
+      teachingExperience,
+      jobType,
+      cvPath,
+      country,
+      state,
+      city,
+      countryCode,
+    ]);
     //console.log("result from db",result);
     return result[0];
   }
-  async saveResetToken(id:number, token:string, expiryDate:Date){
-    const sql="INSERT INTO reset_password(student_id,token,expires_at) VALUES($1,$2,$3)";
-    const result=await query(sql,[id,token,expiryDate]);
+  async saveResetToken(id: number, token: string, expiryDate: Date) {
+    const sql =
+      "INSERT INTO reset_password(student_id,token_value,expires_at) VALUES($1,$2,$3)";
+    const result = await query(sql, [id, token, expiryDate]);
     return result;
   }
-  async resetPassword(id:number,password:string){
-    try{
-      const sql="UPDATE users SET password=$2 WHERE id=$1 returning *";
-      const result=await query(sql,[id,password]);
+  async resetPassword(id: number, password: string) {
+    try {
+      const sql = "UPDATE users SET password=$2 WHERE id=$1 returning *";
+      const result = await query(sql, [id, password]);
       return result;
+    } catch (e) {
+      console.log(`Error resetting password for user ${id}: ${e}`);
     }
-   catch(e){
-    console.log(`Error resetting password for user ${id}: ${e}`);
-   }
   }
-  async tokenUsed(id:number){
-    const sql="UPDATE reset_password SET is_used=TRUE WHERE id=$1";
-    const result=await query(sql,[id]);
+  async tokenUsed(id: number) {
+    const sql = "UPDATE reset_password SET is_used=TRUE WHERE id=$1";
+    const result = await query(sql, [id]);
     return result;
   }
   async editStudent(id: number, name: string, email: string) {
-    const sql = "UPDATE users SET name = $1, email = $2 WHERE id = $3 RETURNING *";
+    const sql =
+      "UPDATE users SET name = $1, email = $2 WHERE id = $3 RETURNING *";
     const result = await query(sql, [name, email, id]);
     return result[0]; // Return updated user
   }
@@ -137,14 +194,22 @@ export class UserRepository {
                 SET country = $2, state = $3, city = $4, pincode = $5, 
                     address = $6, phone_number = $7 
                 WHERE user_id = $1`;
-    const result = await query(sql, [id, country, state, city, pinCode, address, phone]);
+    const result = await query(sql, [
+      id,
+      country,
+      state,
+      city,
+      pinCode,
+      address,
+      phone,
+    ]);
     return result[0];
   }
   async deactivateUser(id: number) {
     const sql = "UPDATE users SET active = false WHERE id = $1 RETURNING *";
     const result = await query(sql, [id]);
     return result[0];
-  }  
+  }
   async findByIdAsync(userId: number) {
     const sql = `
       SELECT 
@@ -156,7 +221,7 @@ export class UserRepository {
       LEFT JOIN student_metadata sm ON u.id = sm.user_id
       WHERE u.id = $1 AND u.active = true
     `;
-    
+
     const result = await query(sql, [userId]);
     return result.length ? result[0] : null;
   }
@@ -184,11 +249,11 @@ export class UserRepository {
       JOIN 
         mentor_metadata mm ON u.id = mm.user_id
       WHERE 
-        u.active = true`; 
-  
+        u.active = true`;
+
     const conditions: string[] = [];
     const values: any[] = [];
-  
+
     if (filter) {
       if (filter.email) {
         conditions.push(`u.email = $${values.length + 1}`);
@@ -203,39 +268,40 @@ export class UserRepository {
         values.push(`${filter.phone_number}`);
       }
     }
-  
+
     if (conditions.length > 0) {
-      sql += ` AND ` + conditions.join(' AND ');
+      sql += ` AND ` + conditions.join(" AND ");
     }
     const result = await query(sql, values);
 
     for (const mentor of result) {
       if (mentor.cv) {
-          try {
-              const fileBuffer = await fs.readFile(mentor.cv);
-              mentor.cv_base64 = fileBuffer.toString('base64');
+        try {
+          const fileBuffer = await fs.readFile(mentor.cv);
+          mentor.cv_base64 = fileBuffer.toString("base64");
 
-              // Extract MIME type
-              const cvPathString = String(mentor.cv);
-              const mimeType = mime.lookup(cvPathString) || 'application/octet-stream';
-              mentor.cv_mimetype = mimeType;
-
-          } catch (error) {
-              console.error(`Error reading file ${mentor.cv}:`, error);
-              mentor.cv_base64 = null;
-              mentor.cv_mimetype = null;
-          }
-      } else {
+          // Extract MIME type
+          const cvPathString = String(mentor.cv);
+          const mimeType =
+            mime.lookup(cvPathString) || "application/octet-stream";
+          mentor.cv_mimetype = mimeType;
+        } catch (error) {
+          console.error(`Error reading file ${mentor.cv}:`, error);
           mentor.cv_base64 = null;
           mentor.cv_mimetype = null;
+        }
+      } else {
+        mentor.cv_base64 = null;
+        mentor.cv_mimetype = null;
       }
-  }
+    }
     return result;
-  }  
+  }
   async editMentor(id: number, name: string, email: string) {
-    const sql = "UPDATE users SET name = $1, email = $2 WHERE id = $3 RETURNING *";
+    const sql =
+      "UPDATE users SET name = $1, email = $2 WHERE id = $3 RETURNING *";
     const result = await query(sql, [name, email, id]);
-    return result[0]; 
+    return result[0];
   }
   async updateMentorMetaData(
     id: number,
@@ -251,24 +317,38 @@ export class UserRepository {
   ) {
     let sql = `UPDATE mentor_metadata SET `;
     const params: any[] = [];
-    
+
     if (cv !== null && cv !== "") {
       sql += `cv = $${params.length + 1}, `;
       params.push(cv);
     }
-  
-    sql += `phone_number = $${params.length + 1}, address = $${params.length + 2}, 
-            qualification = $${params.length + 3}, teaching_experience = $${params.length + 4}, 
+
+    sql += `phone_number = $${params.length + 1}, address = $${
+      params.length + 2
+    }, 
+            qualification = $${params.length + 3}, teaching_experience = $${
+      params.length + 4
+    }, 
             job_type = $${params.length + 5}, country = $${params.length + 6}, 
             state = $${params.length + 7}, city = $${params.length + 8} 
             WHERE user_id = $${params.length + 9}`;
-  
-    params.push(phoneNumber, address, qualification, teachingExperience, jobType, country, state, city, id);
-  
+
+    params.push(
+      phoneNumber,
+      address,
+      qualification,
+      teachingExperience,
+      jobType,
+      country,
+      state,
+      city,
+      id
+    );
+
     const result = await query(sql, params);
     return result[0];
   }
-  async approveTutor(status:string, id:number){
+  async approveTutor(status: string, id: number) {
     //console.log("Approve id",status,id);
     const sql = `
     WITH updated AS (
@@ -283,11 +363,11 @@ export class UserRepository {
     FROM updated
     JOIN users u ON updated.user_id = u.id;
   `;
-  const result = await query(sql, [status, id]);
-  return result[0];
+    const result = await query(sql, [status, id]);
+    return result[0];
   }
   async updatePassword(id: number, newPassword: string) {
-    console.log("id",id,newPassword);
+    console.log("id", id, newPassword);
     const sql = `UPDATE users SET password = $1, updated_at = NOW() WHERE id = $2`;
     await query(sql, [newPassword, id]);
   }
@@ -297,7 +377,7 @@ export class UserRepository {
     `;
     const result = await query(sql);
     return parseInt(result[0].count, 10);
-  }  
+  }
   async getAssignmentsAnswered(): Promise<number> {
     const sql = `
       SELECT COUNT(*) FROM document_based_services 
@@ -305,12 +385,12 @@ export class UserRepository {
     `;
     const result = await query(sql);
     return parseInt(result[0].count, 10);
-  }  
+  }
   async getTotalAssignments(): Promise<number> {
     const sql = `SELECT COUNT(*) FROM document_based_services`;
     const result = await query(sql);
     return parseInt(result[0].count, 10);
-  }  
+  }
   async getOnlineClassesRequested(): Promise<number> {
     const sql = `
       SELECT COUNT(*) FROM session_based_services sbs
@@ -320,11 +400,13 @@ export class UserRepository {
     const result = await query(sql);
     return parseInt(result[0].count, 10);
   }
-  async getAssignmentActivity(range: "week" | "month" | "year"): Promise<{ labels: string[], counts: number[] }> {
+  async getAssignmentActivity(
+    range: "week" | "month" | "year"
+  ): Promise<{ labels: string[]; counts: number[] }> {
     let sql = "";
     let labels: string[] = [];
     let counts: number[] = [];
-  
+
     if (range === "week") {
       sql = `
         SELECT 
@@ -349,7 +431,20 @@ export class UserRepository {
         TO_CHAR(created_at, 'Mon')
         )
       `;
-      labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      labels = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
     } else if (range === "year") {
       sql = `
         SELECT EXTRACT(YEAR FROM created_at)::TEXT AS year, COUNT(*) 
@@ -358,9 +453,9 @@ export class UserRepository {
         ORDER BY year
       `;
     }
-  
+
     const result = await query(sql);
-  
+
     if (range === "year") {
       labels = result.map((r: any) => r.year);
       counts = result.map((r: any) => parseInt(r.count));
@@ -369,12 +464,16 @@ export class UserRepository {
       for (const row of result) {
         countMap[row.day || row.month] = parseInt(row.count);
       }
-      counts = labels.map(label => countMap[label] || 0);
+      counts = labels.map((label) => countMap[label] || 0);
     }
-  
+
     return { labels, counts };
   }
-  async getNotificationsWithCount(userId: number, offset: number, limit: number): Promise<{ total: number, notifications: any[] }> {
+  async getNotificationsWithCount(
+    userId: number,
+    offset: number,
+    limit: number
+  ): Promise<{ total: number; notifications: any[] }> {
     const sql = `
       SELECT
         id,
@@ -388,15 +487,15 @@ export class UserRepository {
       ORDER BY created_at DESC
       OFFSET $2 LIMIT $3
     `;
-  
+
     const result = await query(sql, [userId, offset, limit]);
-  
+
     const total = result.length > 0 ? parseInt(result[0].total_count) : 0;
     const notifications = result.map((row: any) => {
       const { total_count, ...rest } = row;
       return rest;
     });
-  
+
     return { total, notifications };
   }
   async fetchPaymentHistory(studentId: number) {
@@ -412,16 +511,16 @@ export class UserRepository {
     WHERE ph.student_id = $1 AND s.service_type != 'Others'
     ORDER BY ph.date DESC;
     `;
-  
+
     const result = await query(sql, [studentId]);
-return result.map((row: any) => ({
-  ...row,
-  amount: new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-  }).format(row.amount),
-}));
+    return result.map((row: any) => ({
+      ...row,
+      amount: new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+      }).format(row.amount),
+    }));
   }
   async fetchAllPaymentHistory() {
     const sql = `
@@ -441,13 +540,13 @@ return result.map((row: any) => ({
     LEFT JOIN student_metadata sm ON u.id = sm.user_id
     ORDER BY ph.date DESC;
     `;
-  
+
     const result = await query(sql);
     return result;
   }
-  async getStudent (id:number){
-    const sql="SELECT name FROM users WHERE studentId=$1";
-    const result=await query(sql,[id]);
+  async getStudent(id: number) {
+    const sql = "SELECT name FROM users WHERE studentId=$1";
+    const result = await query(sql, [id]);
     return result[0];
   }
   async addDemoClass(data: {
@@ -475,9 +574,9 @@ return result.map((row: any) => ({
       data.timeSlot,
       data.education,
       data.country,
-      data.message
+      data.message,
     ];
-  
+
     await query(sql, values);
   }
   async getDemoClassList() {
@@ -488,12 +587,16 @@ return result.map((row: any) => ({
       FROM demo_class_requests
       ORDER BY created_at DESC
     `;
-  
+
     const result = await query(sql);
     return result;
   }
-  
-  async updateDemoClassStatus(id: number, status: string, reason: string | null = null) {
+
+  async updateDemoClassStatus(
+    id: number,
+    status: string,
+    reason: string | null = null
+  ) {
     const sql = `
       UPDATE demo_class_requests
       SET status = $1,
@@ -501,7 +604,7 @@ return result.map((row: any) => ({
       WHERE id = $3
       RETURNING *
     `;
-    
+
     const result = await query(sql, [status, reason, id]);
     return result[0];
   }
