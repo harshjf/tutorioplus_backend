@@ -80,11 +80,13 @@ WHERE name = 'SERVICE_ADDED_STUDENT_EMAIL_TEMPLATE';
 
 INSERT INTO notifications (name, category) VALUES
 ('DEMO_CLASS_REQUEST_ACCEPTED', 'SERVICE');
+
 INSERT INTO notification_templates (name, wildcards, subject, content) VALUES
 ('DEMO_CLASS_REQUESTED_EMAIL_TEMPLATE', 
 '["%studentName%,%time%,%duration%,%subject%"]'::jsonb, 
 'Acceptance of Demo Class Request',
 '<tr><td style="padding: 20px 30px;"><div style="font-family: Arial, sans-serif; color: #000; line-height: 1.6; font-size: 14px;"><div style="margin-bottom: 10px;"> Dear <strong>%studentName%</strong>, </div><div style="margin-bottom: 20px;"> Your request for demo class has successfully been registered on our portal. </div><div style="margin-bottom: 8px; color: red; font-weight: bold;"> Details- </div><div style="margin-bottom: 5px;"> Time- <strong>%time%</strong></div><div style="margin-bottom: 5px;"> Duration- <strong>%duration%</strong></div><div style="margin-bottom: 5px;"> Price- <strong style="color: green;">Free</strong></div><div style="margin-bottom: 5px;"> Topic- <strong>%subject%</strong></div></div><div style="border-top: 1px solid #ccc; border-bottom: 1px solid #ccc; padding: 20px 0; font-family: Arial, sans-serif; color: #000; line-height: 1.6;"><div style="margin-bottom: 15px; font-size: 16px;"> For any assistance, please feel free to reach out to us at </div><table cellpadding="0" cellspacing="0" border="0" style="font-size: 16px;"><tr><td valign="middle" style="padding-right: 10px;"><img src="https://tutorioplus.com/images/icons/email.png" alt="Email Icon" width="20" style="vertical-align: middle;" /></td><td><a href="mailto:contact@tutorioplus.com" style="color: #00a4e1; text-decoration: none;">contact@tutorioplus.com</a></td></tr><tr><td valign="middle" style="padding-top: 10px; padding-right: 10px;"><img src="https://tutorioplus.com/images/icons/web.png" alt="Web Icon" width="20" style="vertical-align: middle;" /></td><td style="padding-top: 10px;"><a href="https://www.tutorioplus.com" target="_blank" style="color: #00a4e1; text-decoration: none;">Ask I-Buddy</a></td></tr></table></div><div style="margin-top: 20px; font-size: 14px;"> Best Wishes,<br><strong>Team Tutorioplus</strong><br><a href="https://www.tutorioplus.com/" style="color: #0091cf; text-decoration: none;" target="_blank">https://www.tutorioplus.com/</a></div></div></td></tr>');
+
 INSERT INTO notification_channel_mapping (notification_id, channel_id, template_id)
 SELECT 
     n.id,
@@ -113,6 +115,7 @@ FROM notifications n
 JOIN notification_templates t ON t.name = 'GRIEVANCE_ADDED_EMAIL_TEMPLATE'
 JOIN notification_channels c ON c.name = 'EMAIL'
 WHERE n.name = 'GRIEVANCE_ADDED'; 
+
 UPDATE notification_templates
 SET 
 subject='Student Grievance Alert! ',
