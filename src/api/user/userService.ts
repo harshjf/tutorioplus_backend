@@ -721,12 +721,12 @@ export class UserService {
       });
 
       // Send confirmation to student
-      console.log("demoData", demoData.name);
+      //console.log("demoData", demoData.name);
       await notificationQueue.add("sendNotification", {
         type: "DEMO_CLASS_REQUEST_STUDENT",
         params: {
           "%studentName%": demoData.name,
-          "%time%": demoData.time_slot,
+          "%time%": demoData.timeSlot,
           "%duration%": "30Min",
           "%topic%": demoData.subject,
           email: demoData.email
