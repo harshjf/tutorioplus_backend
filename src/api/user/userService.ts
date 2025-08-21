@@ -728,7 +728,8 @@ export class UserService {
           "%studentName%": demoData.name,
           "%time%": demoData.time_slot,
           "%duration%": "30Min",
-          "%topic%": demoData.subject
+          "%topic%": demoData.subject,
+          email: demoData.email
         },
       }); 
 
@@ -775,7 +776,7 @@ export class UserService {
           StatusCodes.NOT_FOUND
         );
       }
-      if(isApproved){
+      /* if(isApproved){
         //send notification
          await notificationQueue.add("sendNotification", {
         type: "DEMO_CLASS_REQUEST_ACCEPTED",
@@ -787,7 +788,7 @@ export class UserService {
            "%subject%":result.subject
         },
       });
-      }
+      } */
       return ServiceResponse.success(
         `Demo class request has been ${status.toLowerCase()} successfully`,
         result

@@ -11,6 +11,34 @@ import { logger } from "@/server";
 
 export class ServiceService {
   private serviceRepository: ServiceRepository;
+  
+  private formatTimeForNotification(input: string): string {
+    if (!input) return "";
+    const ampmMatch = input.match(/(\d{1,2}):(\d{2})(?::\d{2})?\s*([AaPp][Mm])/);
+    if (ampmMatch) {
+      const hour = parseInt(ampmMatch[1], 10);
+      const minutes = ampmMatch[2];
+      const meridiem = ampmMatch[3].toUpperCase();
+      const hour12 = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
+      return `${String(hour12).padStart(2, "0")}:${minutes} ${meridiem}`;
+    }
+    let timePart = input;
+    if (input.includes("T")) {
+      timePart = input.split("T")[1];
+    } else if (input.includes(" ")) {
+      const parts = input.split(" ");
+      timePart = parts[parts.length - 1];
+    }
+    timePart = timePart.replace(/Z|[+-]\d{2}:?\d{2}$/i, "").trim();
+    const [hhStr, mmStr] = timePart.split(":");
+    if (!hhStr || !mmStr) return input;
+    const hours24 = parseInt(hhStr, 10);
+    const minutes = mmStr.padStart(2, "0");
+    if (isNaN(hours24)) return input;
+    const isPM = hours24 >= 12;
+    const hours12 = hours24 % 12 === 0 ? 12 : hours24 % 12;
+    return `${String(hours12).padStart(2, "0")}:${minutes} ${isPM ? "PM" : "AM"}`;
+  }
 
   constructor(repository: ServiceRepository = new ServiceRepository()) {
     this.serviceRepository = repository;
@@ -135,9 +163,9 @@ export class ServiceService {
             type: "SERVICE_ADDED_STUDENT",
             userId: request.body.studentId,
             params: {
-              "%studentName%": result.student_name,
+              "%studentName%": result.name,
               "%serviceName%": service.service_type.replace(" Request", ""), 
-              "%time%": scheduledTime.split('T')[1],
+              "%time%": this.formatTimeForNotification(scheduledTime),
               "%duration%": duration.toString().includes('Min') ? duration : `${duration}Min`,
               "%topic%": subject,
             },

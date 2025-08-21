@@ -9,6 +9,69 @@ import fs from "fs/promises";
 import mime from "mime-types";
 
 export class ServiceRepository {
+  private normalizeScheduleTime(raw: string): string {
+    // Accept inputs like: "22-08-2025T18:25 PM", "22-08-2025 06:25 PM", "2025-08-22 18:25",
+    // and normalize to "YYYY-MM-DD HH:MM:SS" (no timezone)
+    if (!raw) {
+      throw new Error("Invalid schedule time");
+    }
+    const input = raw.trim().replace(/\//g, "-");
+
+    // Try DD-MM-YYYY
+    let dd: string | undefined;
+    let mm: string | undefined;
+    let yyyy: string | undefined;
+
+    let dateMatch = input.match(/(\d{1,2})-(\d{1,2})-(\d{4})/);
+    if (dateMatch) {
+      dd = dateMatch[1];
+      mm = dateMatch[2];
+      yyyy = dateMatch[3];
+    } else {
+      // Try YYYY-MM-DD
+      dateMatch = input.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+      if (dateMatch) {
+        yyyy = dateMatch[1];
+        mm = dateMatch[2];
+        dd = dateMatch[3];
+      }
+    }
+
+    if (!yyyy || !mm || !dd) {
+      // Fallback: let DB attempt to parse
+      return raw;
+    }
+
+    const timeMatch = input.match(/(\d{1,2}):(\d{2})\s*([AaPp][Mm])?/);
+    let hour = 0;
+    let minutes = "00";
+    const hasTime = Boolean(timeMatch);
+    if (hasTime && timeMatch) {
+      const originalHour = parseInt(timeMatch[1], 10);
+      minutes = timeMatch[2];
+      const meridiem = timeMatch[3] ? timeMatch[3].toUpperCase() : undefined;
+
+      if (meridiem && originalHour <= 12) {
+        // 12-hour clock with AM/PM
+        if (meridiem === "AM") {
+          hour = originalHour === 12 ? 0 : originalHour;
+        } else {
+          hour = originalHour === 12 ? 12 : originalHour + 12;
+        }
+      } else {
+        // 24-hour or ambiguous with invalid 12h + AM/PM combination like 18:25 PM
+        hour = originalHour;
+      }
+    }
+
+    const yyyyP = yyyy.padStart(4, "0");
+    const mmP = mm.padStart(2, "0");
+    const ddP = dd.padStart(2, "0");
+    const hhP = String(hour).padStart(2, "0");
+    const minP = minutes.padStart(2, "0");
+
+    return `${yyyyP}-${mmP}-${ddP} ${hhP}:${minP}:00`;
+  }
   async getAllServices(): Promise<Service[]> {
     const sql =
       "SELECT *, LOWER(REPLACE(service_type, ' ', '-')) AS navbar_url FROM services";
@@ -90,7 +153,8 @@ export class ServiceRepository {
     ): Promise<SessionBasedService> {
 
         const sql = "INSERT INTO session_based_services(student_id, subject, service_id, schedule_time, duration, link, payment_id, country_code) VALUES($1, $2, $3, $4, $5, $6, $7, $8) returning *";
-        const result = await query(sql, [studentId, subject, serviceId, scheduledTime, duration, link, payment_id, countryCode]);
+        const normalizedScheduleTime = this.normalizeScheduleTime(scheduledTime);
+        const result = await query(sql, [studentId, subject, serviceId, normalizedScheduleTime, duration, link, payment_id, countryCode]);
         return result;
     }
     async addAdHocService(name:string, payment_id:string): Promise<SessionBasedService>{
