@@ -123,7 +123,7 @@ export class ServiceService {
           });
           await notificationQueue.add("sendNotification", {
             type: "COUNSELLING_REQUEST_ADDED",
-            userId: request.body.studentId,
+            recipientRole: "Admin",
             params: {
               "%studentName%": result.name,
               "%country%": result.country

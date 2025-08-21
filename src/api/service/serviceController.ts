@@ -85,7 +85,7 @@ class ServiceController {
 
     public getServiceDetails: RequestHandler = async (req: Request, res: Response) => {
       const serviceId = parseInt(req.params.id);
-      console.log("Service details for service",serviceId);
+      //console.log("Service details for service",serviceId);
       if (isNaN(serviceId)) {
         return res.status(400).json({ message: "Invalid service ID" });
       }

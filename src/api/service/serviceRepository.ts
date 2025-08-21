@@ -158,7 +158,7 @@ export class ServiceRepository {
     if (conditions.length > 0) {
       sql += ` AND ` + conditions.join(" AND ");
     }
-
+    sql += ` ORDER BY dbs.created_at DESC`;
     const result = await query(sql, values);
     for (const item of result) {
       if (item.doc_path) {
@@ -253,6 +253,8 @@ export class ServiceRepository {
         if (conditions.length > 0) {
             sql += ` AND ` + conditions.join(' AND ');
         }
+
+        sql += ` ORDER BY sbs.created_at DESC`;
 
         const result = await query(sql, values);
         return result;

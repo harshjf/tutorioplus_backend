@@ -23,6 +23,7 @@ export class GrievanceRepository {
             users u ON g.student_id = u.id
         JOIN 
             student_metadata sm ON u.id = sm.user_id
+        ORDER BY g.created_at DESC
         `;
       
         const conditions: string[] = [`g.active = TRUE`]; 

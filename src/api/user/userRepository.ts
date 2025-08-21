@@ -57,7 +57,8 @@ export class UserRepository {
       JOIN 
         student_metadata sm ON u.id = sm.user_id
       WHERE 
-        u.active = true`; 
+        u.active = true
+      ORDER BY u.created_at DESC`; 
   
     const conditions: string[] = [];
     const values: any[] = [];
@@ -184,7 +185,8 @@ export class UserRepository {
       JOIN 
         mentor_metadata mm ON u.id = mm.user_id
       WHERE 
-        u.active = true`; 
+        u.active = true
+      ORDER BY mm.created_at DESC`; 
   
     const conditions: string[] = [];
     const values: any[] = [];
