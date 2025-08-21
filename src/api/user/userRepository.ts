@@ -66,7 +66,7 @@ export class UserRepository {
         student_metadata sm ON u.id = sm.user_id
       WHERE 
         u.active = true
-      ORDER BY u.created_at DESC`; 
+      `; 
   
     const conditions: string[] = [];
     const values: any[] = [];
@@ -89,6 +89,7 @@ export class UserRepository {
     if (conditions.length > 0) {
       sql += ` AND ` + conditions.join(" AND ");
     }
+    sql += ` ORDER BY u.created_at DESC`;
 
     /* console.log("Values", values); */
     const result = await query(sql, values);
@@ -251,7 +252,7 @@ export class UserRepository {
         mentor_metadata mm ON u.id = mm.user_id
       WHERE 
         u.active = true
-      ORDER BY mm.created_at DESC`; 
+      `; 
   
     const conditions: string[] = [];
     const values: any[] = [];
@@ -274,6 +275,7 @@ export class UserRepository {
     if (conditions.length > 0) {
       sql += ` AND ` + conditions.join(" AND ");
     }
+    sql += ` ORDER BY mm.created_at DESC`;
     const result = await query(sql, values);
 
     for (const mentor of result) {

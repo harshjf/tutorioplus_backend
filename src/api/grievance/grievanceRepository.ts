@@ -23,7 +23,6 @@ export class GrievanceRepository {
             users u ON g.student_id = u.id
         JOIN 
             student_metadata sm ON u.id = sm.user_id
-        ORDER BY g.created_at DESC
         `;
       
         const conditions: string[] = [`g.active = TRUE`]; 
@@ -83,6 +82,7 @@ export class GrievanceRepository {
         if (conditions.length > 0) {
           sql += ` WHERE ` + conditions.join(' AND ');
         }
+        sql += ` ORDER BY g.created_at DESC`;
       
         const result = await query(sql, values);
         return result;
