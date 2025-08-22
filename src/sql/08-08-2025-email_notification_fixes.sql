@@ -101,3 +101,5 @@ WHERE
 
 ALTER TABLE session_based_services DROP COLUMN timezone;
 ALTER TABLE session_based_services ADD COLUMN country_code VARCHAR(10);
+
+ALTER TABLE reset_password ADD COLUMN expires_at TIMESTAMP;
