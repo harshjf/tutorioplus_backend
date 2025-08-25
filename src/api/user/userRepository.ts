@@ -536,7 +536,8 @@ export class UserRepository {
       u.email AS student_email,
       u.id AS student_id,
       ph.payment_id,
-      sm.phone_number AS student_phone
+      sm.phone_number AS student_phone,
+      sm.country_code AS student_country_code
       FROM payment_history ph
     LEFT JOIN session_based_services sbs ON ph.payment_id = sbs.payment_id
     LEFT JOIN services s ON sbs.service_id = s.id

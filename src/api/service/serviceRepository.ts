@@ -284,6 +284,9 @@ export class ServiceRepository {
       AND sbs.service_id NOT IN (
           SELECT id FROM services WHERE service_type = 'Others'
       )
+      AND sbs.service_id NOT IN (
+          SELECT id FROM services WHERE service_type = 'Counselling'
+      )
         `;
         const conditions: string[] = [];
         const values: any[] = [];
@@ -299,6 +302,70 @@ export class ServiceRepository {
             if (filter.due_date) {
                 const formattedDate = new Date(filter.due_date).toISOString().split('T')[0];
                 conditions.push(`sbs.due_date::DATE = $${values.length + 1}`);           
+                values.push(formattedDate);
+            }
+            if (filter.services) {
+                const serviceIds = filter.services.replace(/&comma;/g, ',').split(',').map(Number);
+                
+                if (serviceIds.length > 0) {
+                    conditions.push(`sbs.service_id = ANY($${values.length + 1})`);
+                    values.push(serviceIds);
+                }
+            }
+        }
+        if (student_id) {
+            conditions.push(`sbs.student_id = $${values.length + 1}`);
+            values.push(student_id);
+        }
+        if (conditions.length > 0) {
+            sql += ` AND ` + conditions.join(' AND ');
+        }
+
+        sql += ` ORDER BY sbs.created_at DESC`;
+
+        const result = await query(sql, values);
+        return result;
+    }
+
+    async getCounsellingList(filter: GetAssignmentListFilter, student_id: string) {
+        let sql = `
+         SELECT 
+        sbs.id,
+        sbs.student_id,
+        u.name AS student_name,  
+        sbs.service_id,
+        u.email AS student_email,
+        sm.phone_number AS student_phone,
+        sm.country_code AS country_code,
+        sbs.schedule_time,
+        sbs.duration,
+        sbs.subject,
+        s.service_type AS service_name,
+        sbs.status,
+        sbs.created_at,
+        sbs.updated_at,
+        sbs.country_code As countryCode
+    FROM session_based_services sbs
+    JOIN users u ON sbs.student_id = u.id
+    JOIN student_metadata sm ON sm.user_id = u.id
+    JOIN services s ON sbs.service_id = s.id
+    WHERE sbs.active = true
+      AND s.service_type LIKE '%Counselling%'
+        `;
+        const conditions: string[] = [];
+        const values: any[] = [];
+        if(filter){
+            if (filter.name) {
+                conditions.push(`u.name ILIKE $${values.length + 1}`);
+                values.push(`%${filter.name}%`);
+            }
+            if (filter.description) {
+                conditions.push(`sbs.description ILIKE $${values.length + 1}`);
+                values.push(`%${filter.description}%`);
+            }
+            if (filter.due_date) {
+                const formattedDate = new Date(filter.due_date).toISOString().split('T')[0];
+                conditions.push(`sbs.schedule_time::DATE = $${values.length + 1}`);           
                 values.push(formattedDate);
             }
             if (filter.services) {

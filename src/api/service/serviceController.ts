@@ -48,6 +48,12 @@ class ServiceController {
       return handleServiceResponse(serviceResponse, res);
     };
 
+    public getCounsellingList: RequestHandler = async(req: Request, res:Response) =>{
+      const { filter, student_id } = req.body || {};
+      const serviceResponse = await serviceService.getCounsellingList(filter, student_id);
+      return handleServiceResponse(serviceResponse, res);
+    };
+
     public getOtherServicesList: RequestHandler = async(req: Request, res:Response) =>{
       const serviceResponse = await serviceService.getOtherServicesList();
       return handleServiceResponse(serviceResponse, res);
