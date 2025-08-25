@@ -79,7 +79,6 @@ export class ServiceService {
       const service = await this.serviceRepository.getServiceById(
         parseInt(request.body.serviceId)
       );
-      console.log("service", service);
       if (!service) {
         return ServiceResponse.failure(
           "Service not found",
@@ -100,7 +99,6 @@ export class ServiceService {
           description,
           dueDate
         );
-        console.log("document based service",result);
         await notificationQueue.add("sendNotification", {
         type: "ASSIGNMENT_SUBMITTED_ADMIN",
         recipientRole: "Admin",
@@ -162,11 +160,6 @@ export class ServiceService {
           });
           
         } else {
-          console.log("session based service result",result);
-          console.log("session based service name",service.service_type.replace(" Request", ""));
-          console.log("session based service time",this.formatTimeForNotification(scheduledTime));
-          console.log("session based service duration",duration.toString().includes('Min') ? duration : `${duration}Min`);
-          console.log("session based service subject",subject);
           await notificationQueue.add("sendNotification", {
             type: "SERVICE_ADDED_STUDENT",
             userId: request.body.studentId,
