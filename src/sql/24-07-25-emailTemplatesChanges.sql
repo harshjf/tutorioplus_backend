@@ -54,7 +54,7 @@ WHERE name = 'ASSIGNMENT_ANSWERED_EMAIL_TEMPLATE';
 UPDATE notification_templates
 SET 
 subject='%serviceName% Request',
-wildcards = '["%serviceName","%studentName%", "%country%"]'::jsonb,
+wildcards = '["%serviceName%","%studentName%", "%country%"]'::jsonb,
 content = '<div style="font-family: Arial, sans-serif; color: #000; line-height: 1.5;"><div style="margin-bottom: 15px; font-size: 14px;">Dear <strong>Tutorioplus Admin</strong>,</div><div style="margin-bottom: 20px; font-size: 14px; text-align: justify;"> A New student has successfully completed the registration for %serviceName%. Kindly visit your admin portal and review it. </div><div style="margin-bottom: 10px; font-size: 14px; color: #ff0000;"><strong>Details-</strong></div><div style="margin-bottom: 5px; font-size: 14px;"> Student''s Name- <strong>%studentName%</strong></div><div style="margin-bottom: 5px; font-size: 14px;"> Country- <strong>%country%</strong></div><div style="margin-top: 20px; font-size: 14px;"> Many Thanks,<br><strong>Team Tutorioplus</strong></div></div>'
 WHERE name = 'SERVICE_ADDED_EMAIL_TEMPLATE';
 
