@@ -65,6 +65,10 @@ const sendNotification = async (
 
       let finalSubject = subject;
       let finalMessage = content;
+      console.log("Wildcards:", wildcards);
+      console.log("Params:", params);
+      console.log("Final Subject before replacement:", finalSubject);
+      console.log("Final Message before replacement:", finalMessage);
       if (wildcards && Array.isArray(wildcards)) {
         wildcards.forEach((placeholder: string) => {
           const key = placeholder;
@@ -78,6 +82,9 @@ const sendNotification = async (
           );
         });
       }
+
+      console.log("Final Subject after replacement:", finalSubject);
+      console.log("Final Message after replacement:", finalMessage);
 
       for (const user of users) {
         if (channel === "EMAIL") {
