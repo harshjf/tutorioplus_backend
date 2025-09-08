@@ -1,6 +1,8 @@
 import { query } from "@/common/models/database";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+import { doubleTickClient } from "@/notifications/doubletickClient";
+import { normalizeToE164 } from "@/common/utils/phone";
 
 dotenv.config();
 
@@ -24,12 +26,23 @@ const sendNotification = async (
 ): Promise<void> => {
   try {
     const notificationQuery = `
-        SELECT n.id, n.name, t.subject, t.content, t.wildcards, c.name AS channel
-        FROM notifications n
-        JOIN notification_channel_mapping m ON n.id = m.notification_id
-        JOIN notification_templates t ON m.template_id = t.id
-        JOIN notification_channels c ON m.channel_id = c.id
-        WHERE n.name = $1
+        SELECT
+      n.id,
+      n.name,
+      t.subject,
+      t.content,
+      t.wildcards,
+      c.name AS channel,
+      wt.template_name AS wa_template_name,
+      wt.language AS wa_language,
+      wt.from_number AS wa_from,
+      wt.variable_order AS wa_variable_order
+    FROM notifications n
+    JOIN notification_channel_mapping m ON n.id = m.notification_id
+    JOIN notification_channels c ON m.channel_id = c.id
+    LEFT JOIN notification_templates t ON m.template_id = t.id
+    LEFT JOIN whatsapp_templates wt ON m.whatsapp_template_id = wt.id
+    WHERE n.name = $1
       `;
 
     const result = await query(notificationQuery, [type]);
@@ -94,6 +107,38 @@ const sendNotification = async (
             finalSubject,
             finalMessage
           );
+        } else if (channel === "WHATSAPP") {
+          let phone = (params as any).phone as string | undefined;
+      
+          if (!phone && user.id) {
+            const phoneRow = await query(
+              "SELECT phone_number AS phone, country_code FROM student_metadata WHERE user_id = $1",
+              [user.id]
+            );
+            if (phoneRow.length > 0 && phoneRow[0].phone) {
+              const cc = phoneRow[0].country_code || "1";
+              phone = normalizeToE164(String(phoneRow[0].phone), String(cc));
+            }
+          }
+          if (!phone) {
+            console.warn(`Skipping WhatsApp: missing phone for user ${user.id || "N/A"}`);
+            continue;
+          }
+          const templateName = row.wa_template_name;
+          const language = row.wa_language || "en";
+          const from = row.wa_from || process.env.DOUBLETICK_DEFAULT_FROM;
+      
+          try {
+            const data = await doubleTickClient.sendTemplate({
+              to: phone,
+              from,
+              templateName,
+              language,
+            });
+            console.log("WhatsApp message sent:", JSON.stringify(data));
+          } catch (err: any) {
+            console.error("WhatsApp send failed:", err?.response?.data || err?.message || err);
+          }
         }
       }
     }
