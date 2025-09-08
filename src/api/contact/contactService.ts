@@ -14,7 +14,7 @@ export const handleContactFormSubmission = async (data: ContactFormData) => {
     type: "CONTACT_FORM_SUBMISSION",
     // or use data.email to send back to user
     params: {
-      email: "janvi@juniperforge.com", 
+      email: "info@tutorioplus.com", 
       "%name%": data.name,
       "%email%": data.email,
       "%phone%": data.phone,

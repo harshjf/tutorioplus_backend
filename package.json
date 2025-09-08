@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^7.0.0",
+    "axios": "^1.11.0",
     "bcrypt": "^5.1.1",
     "bullmq": "^5.44.0",
     "cors": "^2.8.5",
