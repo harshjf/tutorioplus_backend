@@ -124,7 +124,7 @@ const sendNotification = async (
             console.warn(`Skipping WhatsApp: missing phone for user ${user.id || "N/A"}`);
             continue;
           }
-          const templateName = row.wa_template_name || "chatbot_no_1_all_in_one_final_august";
+          const templateName = row.wa_template_name;
           const language = row.wa_language || "en";
           const from = row.wa_from || process.env.DOUBLETICK_DEFAULT_FROM;
       
