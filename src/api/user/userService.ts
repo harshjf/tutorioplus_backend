@@ -257,7 +257,8 @@ export class UserService {
 
         await this.userRepository.saveResetToken(user.id, token, expiryDate);
 
-        const resetLink = `https://tutorioplus.com/forgot-password?token=${token}`;
+        const resetLink = `https://tutorioplus.com/forgot-password/token=${token}`;
+        
         //await sendResetPasswordEmail(user.email, resetLink);
     await notificationQueue.add("sendNotification", {
           type: "FORGOT_PASSWORD",
@@ -281,6 +282,7 @@ export class UserService {
 
   async confirmResetPassword(token: string, password: string) {
     try {
+      console.log("Token", token);
       const isTokenValid = await this.userRepository.isTokenValid(token);
       console.log("Is token valid", isTokenValid);
       if (!isTokenValid) {
