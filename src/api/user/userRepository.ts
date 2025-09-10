@@ -159,7 +159,7 @@ export class UserRepository {
   }
   async saveResetToken(id: number, token: string, expiryDate: Date) {
     const sql =
-      "INSERT INTO reset_password(student_id,token_value,expires_at) VALUES($1,$2,$3)";
+      "INSERT INTO reset_password(student_id,token,expires_at) VALUES($1,$2,$3)";
     const result = await query(sql, [id, token, expiryDate]);
     return result;
   }
