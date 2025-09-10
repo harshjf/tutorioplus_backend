@@ -18,7 +18,7 @@ export class UserRepository {
     return result;
   }
   async isTokenValid(token: string) {
-    const sql = "SELECT * FROM reset_password WHERE token=$1";
+    const sql = "SELECT * FROM reset_password WHERE token_value=$1";
     const result = await query(sql, [token]);
     return result[0];
   }
@@ -66,8 +66,8 @@ export class UserRepository {
         student_metadata sm ON u.id = sm.user_id
       WHERE 
         u.active = true
-      `; 
-  
+      `;
+
     const conditions: string[] = [];
     const values: any[] = [];
 
@@ -159,7 +159,7 @@ export class UserRepository {
   }
   async saveResetToken(id: number, token: string, expiryDate: Date) {
     const sql =
-      "INSERT INTO reset_password(student_id,token,expires_at) VALUES($1,$2,$3)";
+      "INSERT INTO reset_password(student_id,token_value,expires_at) VALUES($1,$2,$3)";
     const result = await query(sql, [id, token, expiryDate]);
     return result;
   }
@@ -252,8 +252,8 @@ export class UserRepository {
         mentor_metadata mm ON u.id = mm.user_id
       WHERE 
         u.active = true
-      `; 
-  
+      `;
+
     const conditions: string[] = [];
     const values: any[] = [];
 
